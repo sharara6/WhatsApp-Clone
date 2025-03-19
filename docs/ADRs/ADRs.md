@@ -65,17 +65,14 @@ The system must facilitate **efficient inter-service communication** while ensur
 
 ### Decision  
 - **REST API** for client-to-server communication (frontend to backend).  
-- **gRPC** for inter-service communication (microservices).  
 - **WebSockets** for real-time message updates.  
 
 ### Justification  
 - **REST API:** Simple, widely adopted, and compatible with frontend technologies.  
-- **gRPC:** Faster communication with low overhead and strong typing.  
 - **WebSockets:** Persistent connection for real-time updates.  
 
 ### Consequences  
 #### Pros  
-- ✅ Faster and efficient service communication with gRPC  
 - ✅ Real-time updates using WebSockets  
 - ✅ Compatibility with external clients via REST  
 
@@ -142,17 +139,16 @@ The system requires **high-speed message storage and retrieval**, **user authent
 
 ## ADR-006: Message Broker Selection  
 **Date:** 20-03-2025  
-**Status:** under review  
+**Status:** Under review
 
 ### Context  
 The system needs **real-time message delivery** and **event-driven architecture** for efficient microservices communication.  
 
 ### Decision  
-Use **RabbitMQ** as the primary message broker, with **Kafka** for event streaming and analytics.  
+Use  **Kafka** as the primary message broker and for event streaming and analytics.  
 
 ### Justification  
-- **RabbitMQ:** Best suited for **real-time messaging, guaranteed delivery**, and **priority queuing**.  
-- **Kafka:** Handles **chat analytics**, **event logs**, and **large-scale message processing**.  
+- **Kafka:** Best suited for **real-time messaging, guaranteed delivery**, and **priority queuing** and also Handles **chat analytics**, **event logs**, and **large-scale message processing**.  
 
 ### Consequences  
 #### Pros  
