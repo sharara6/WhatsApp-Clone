@@ -1,7 +1,7 @@
 # Architectural Decision Records (ADRs)
 
 ## ADR-001: Architectural Style Selection  
-**Date:** 17-03-2025  
+**Date:** 20-03-2025  
 **Status:** Accepted  
 
 ### Context  
@@ -28,7 +28,7 @@ Adopt a **microservices architecture** to ensure independent service scalability
 ---
 
 ## ADR-002: Programming Languages Selection  
-**Date:** 18-03-2025  
+**Date:** 20-03-2025  
 **Status:** Accepted  
 
 ### Context  
@@ -36,7 +36,7 @@ The system requires **high-performance backend services**, **real-time capabilit
 
 ### Decision  
 - **Go (Golang):** Backend microservices for efficiency and concurrency.  
-- **Node.js (NestJS):** WebSockets for real-time chat and API gateway.  
+- **Node.js :** WebSockets for real-time chat and API gateway.  
 - **React (Next.js):** Frontend for a modern, responsive UI.  
 
 ### Justification  
@@ -57,8 +57,8 @@ The system requires **high-performance backend services**, **real-time capabilit
 ---
 
 ## ADR-003: API Communication Strategy  
-**Date:** 18-03-2025  
-**Status:** Accepted  
+**Date:** 20-03-2025  
+**Status:** Under review  
 
 ### Context  
 The system must facilitate **efficient inter-service communication** while ensuring **low latency** for real-time interactions.  
@@ -86,11 +86,11 @@ The system must facilitate **efficient inter-service communication** while ensur
 ---
 
 ## ADR-004: Authentication Method  
-**Date:** 19-03-2025  
-**Status:** Accepted  
+**Date:** 20-03-2025  
+**Status:** Accepted 
 
 ### Context  
-The system must provide **secure and scalable user authentication**, preventing unauthorized access while supporting multi-device login.  
+The system must provide **secure and scalable user authentication**, preventing unauthorized access while protecting user data.  
 
 ### Decision  
 Use **JWT (JSON Web Token)** for authentication and **OAuth 2.0** for third-party login options.  
@@ -98,7 +98,6 @@ Use **JWT (JSON Web Token)** for authentication and **OAuth 2.0** for third-part
 ### Justification  
 - **JWT:** Stateless authentication, reducing database queries.  
 - **OAuth 2.0:** Enables Google and Facebook logins for convenience.  
-- **Multi-factor authentication (MFA):** Enhances security.  
 
 ### Consequences  
 #### Pros  
@@ -114,7 +113,7 @@ Use **JWT (JSON Web Token)** for authentication and **OAuth 2.0** for third-part
 
 ## ADR-005: Database Selection  
 **Date:** 19-03-2025  
-**Status:** Accepted  
+**Status:** Under review  
 
 ### Context  
 The system requires **high-speed message storage and retrieval**, **user authentication**, and **real-time status tracking**.  
@@ -143,7 +142,7 @@ The system requires **high-speed message storage and retrieval**, **user authent
 
 ## ADR-006: Message Broker Selection  
 **Date:** 20-03-2025  
-**Status:** Accepted  
+**Status:** under review  
 
 ### Context  
 The system needs **real-time message delivery** and **event-driven architecture** for efficient microservices communication.  
