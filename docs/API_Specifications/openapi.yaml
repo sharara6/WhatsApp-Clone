@@ -1,0 +1,408 @@
+openapi: 3.0.4
+info:
+  title: WhatsApps
+  description: |
+    This API provides endpoints for user authentication, user management, and real-time messaging.
+    It supports both RESTful endpoints and WebSocket communication for asynchronous messaging.
+  version: 1.0.0
+servers:
+  - url: https://whatsapps.com/
+tags:
+  - name: Authentication
+    description: Endpoints for user authentication and registration.
+  - name: User Management
+    description: Endpoints for managing user profiles.
+  - name: Conversations
+    description: Endpoints for managing conversations and messages.
+  - name: WebSocket
+    description: Real-time messaging and notifications via WebSocket.
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate a user.
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address.
+                password:
+                  type: string
+                  description: User's password.
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Successful authentication.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authenticated requests.
+                  userId:
+                    type: string
+                    description: The authenticated user's unique identifier.
+        '401':
+          description: Unauthorized. Invalid credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating invalid credentials.
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user.
+      description: Registers a new user into the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: User's full name.
+                email:
+                  type: string
+                  format: email
+                  description: User's email address.
+                password:
+                  type: string
+                  description: User's password.
+              required:
+                - name
+                - email
+                - password
+      responses:
+        '201':
+          description: User successfully registered.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: Unique identifier for the newly registered user.
+                  message:
+                    type: string
+                    description: Confirmation message.
+        '400':
+          description: Bad request. Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating why registration failed.
+
+  /users/{userId}:
+    get:
+      tags:
+        - User Management
+      summary: Get user profile.
+      description: Retrieves profile information for a specific user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  profilePictureUrl:
+                    type: string
+                    nullable: true
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the user was not found.
+
+    put:
+      tags:
+        - User Management
+      summary: Update user profile.
+      description: Updates profile information for a specific user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                  description: Updated user name.
+                profilePictureUrl:
+                  type: string
+                  nullable: true
+                  description: Updated profile picture URL.
+      responses:
+        '200':
+          description: Profile updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success confirmation.
+        '400':
+          description: Bad request. Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the issue.
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the user was not found.
+
+  /conversations:
+    get:
+      tags:
+        - Conversations
+      summary: Get user conversations.
+      description: Retrieves a list of conversations for the authenticated user.
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of conversations to return.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of conversations to skip.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        conversationId:
+                          type: string
+                        participants:
+                          type: array
+                          items:
+                            type: string
+                        lastMessage:
+                          type: string
+                        timestamp:
+                          type: string
+                          format: date-time
+
+  /conversations/{conversationId}/messages:
+    get:
+      tags:
+        - Conversations
+      summary: Get conversation messages.
+      description: Retrieves messages for a specific conversation.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+          description: Maximum number of messages to return.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of messages to skip.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        messageId:
+                          type: string
+                        senderId:
+                          type: string
+                        content:
+                          type: string
+                        timestamp:
+                          type: string
+                          format: date-time
+        '404':
+          description: Conversation not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the conversation was not found.
+
+    post:
+      tags:
+        - Conversations
+      summary: Send a message.
+      description: Sends a new message in a specific conversation.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                senderId:
+                  type: string
+                  description: Unique identifier of the sender.
+                content:
+                  type: string
+                  description: The message content.
+              required:
+                - senderId
+                - content
+      responses:
+        '201':
+          description: Message sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messageId:
+                    type: string
+                    description: Unique identifier for the created message.
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: Time when the message was sent.
+        '400':
+          description: Bad request. Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating what went wrong.
+
+  /ws:
+    get:
+      tags:
+        - WebSocket
+      summary: WebSocket endpoint for real-time communication.
+      description: |
+        A WebSocket endpoint to handle real-time messaging and notifications.
+        Clients connect to `/ws` to establish a persistent, bidirectional communication channel.
+      responses:
+        '101':
+          description: Switching Protocols. WebSocket connection established.
+      x-websocket:
+        messageFormat:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Type of message (e.g., NEW_MESSAGE).
+            payload:
+              type: object
+              properties:
+                conversationId:
+                  type: string
+                messageId:
+                  type: string
+                senderId:
+                  type: string
+                content:
+                  type: string
+                timestamp:
+                  type: string
+                  format: date-time
