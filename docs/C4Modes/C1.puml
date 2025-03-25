@@ -1,0 +1,42 @@
+@startuml
+set separator none
+title Whastapp - System Context
+
+left to right direction
+
+skinparam {
+  arrowFontSize 10
+  defaultTextAlignment center
+  wrapWidth 200
+  maxMessageSize 100
+}
+
+hide stereotype
+
+skinparam rectangle<<AuthSystem>> {
+  BackgroundColor #2d882d
+  FontColor #ffffff
+  BorderColor #1f5f1f
+  shadowing false
+}
+skinparam person<<User>> {
+  BackgroundColor #116611
+  FontColor #ffffff
+  BorderColor #0b470b
+  shadowing false
+}
+skinparam rectangle<<Whastapp>> {
+  BackgroundColor #2d882d
+  FontColor #ffffff
+  BorderColor #1f5f1f
+  shadowing false
+}
+
+person "==User\n<size:10>[Person]</size>" <<User>> as User
+rectangle "==Auth System\n<size:10>[Software System]</size>" <<AuthSystem>> as AuthSystem
+rectangle "==Whastapp\n<size:10>[Software System]</size>" <<Whastapp>> as Whastapp
+
+User .[#707070,thickness=2].> Whastapp : "<color:#707070>Uses"
+AuthSystem .[#707070,thickness=2].> Whastapp : "<color:#707070>Redirect to whatsapp"
+Whastapp .[#707070,thickness=2].> AuthSystem : "<color:#707070>Authorize user"
+@enduml
