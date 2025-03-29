@@ -1,0 +1,45 @@
+name: Enforce Branch Merge Rules
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  validate-merges:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check merge rules
+        env:
+          ALLOWED_MERGE_PAIRS: |
+            # Frontend flow
+            home-page:frontend-testing
+            about-page:frontend-testing
+            contact-page:frontend-testing
+            login-page:frontend-testing
+            signup-page:frontend-testing
+            frontend-testing:frontend
+            frontend:main
+            
+            # Backend flow
+            backend-testing:backend
+            backend:main
+        run: |
+          SOURCE_BRANCH="${{ github.head_ref }}"
+          TARGET_BRANCH="${{ github.base_ref }}"
+
+          # Convert ALLOWED_MERGE_PAIRS to valid combinations (bidirectional)
+          VALID_MERGES=()
+          while IFS=":" read -r branch1 branch2; do
+            VALID_MERGES+=("$branch1:$branch2")
+            VALID_MERGES+=("$branch2:$branch1")  # Add reverse direction
+          done <<< "$(echo "$ALLOWED_MERGE_PAIRS" | grep -v '^$')"
+
+          # Check if merge is allowed
+          MERGE_PAIR="$SOURCE_BRANCH:$TARGET_BRANCH"
+          if [[ ! " ${VALID_MERGES[@]} " =~ " $MERGE_PAIR " ]]; then
+            echo "❌ Error: Merging '$SOURCE_BRANCH' into '$TARGET_BRANCH' is forbidden!"
+            echo "Allowed merge directions:"
+            printf "  - %s ↔ %s\n" "${VALID_MERGES[@]//:/ ↔ }" | sort -u
+            exit 1
+          fi
+
+          echo "✅ Valid merge: $SOURCE_BRANCH ↔ $TARGET_BRANCH"
