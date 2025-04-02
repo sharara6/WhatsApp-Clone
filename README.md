@@ -1,26 +1,27 @@
 # WhatsApp Clone
 
-A full-featured WhatsApp clone that allows users to sign up and log in using email and password authentication. This project implements real-time messaging, user authentication, and a responsive UI.
+A full-featured one-to-one messaging app that allows users to sign up and log in using email and password authentication, without requiring a SIM card. This project implements real-time messaging, user authentication, and a responsive UI.
 
 ## Features
 
-- **Email & Password Authentication**: Secure authentication with NextAuth.js and PostgreSQL.
-- **Real-Time Messaging**: Instant communication using WebSockets.
-- **Media Sharing**: Send images, videos, and documents.
-- **Group Chats**: Create and manage group conversations.
+- **Email & Password Authentication**: Secure authentication with JWT and OAuth 2.0.
+- **One-to-One Messaging**: Direct communication between users.
+- **Real-Time Messaging**: Instant communication using WebSockets and MQTT.
 - **User Profiles**: Update profile pictures and display names.
-- **Online Status & Typing Indicators**: Show when users are online or typing.
+- **Friend Requests**: Send and accept friend requests before initiating chats.
+- **Online Status**: Show when users are online.
 - **Notifications**: Push and in-app notifications for new messages.
 
 ## Tech Stack
 
-- **Frontend**: React.js (with Tailwind CSS)
-- **Backend**: Node.js with Express / Next.js API Routes
-- **Database**: PostgreSQL with Prisma ORM (structured data)
-- **Cache**: Redis for caching
-- **Messaging Storage**: MongoDB for unstructured data (messages)
-- **Authentication**: NextAuth.js (JWT & OAuth support)
-- **Real-time Communication**: WebSockets
+- **Frontend**: React (Next.js) with Tailwind CSS
+- **Backend**: Go (Golang) for microservices, Node.js for WebSockets and API gateway
+- **Database**:
+  - PostgreSQL for relational data (users, authentication)
+  - Redis for caching and real-time session management
+  - MongoDB for unstructured chat messages
+- **Authentication**: JWT and OAuth 2.0 (Google, Facebook logins)
+- **Real-time Communication**: WebSockets & MQTT for messaging
 - **Storage**: Cloudinary / AWS S3
 
 ## Installation
@@ -43,6 +44,7 @@ A full-featured WhatsApp clone that allows users to sign up and log in using ema
      DATABASE_URL=postgresql://user:password@host:port/database
      REDIS_URL=redis://user:password@host:port
      MONGO_URI=mongodb://user:password@host:port/database
+     MQTT_BROKER=mqtt://host:port
      NEXTAUTH_SECRET=your_secret
      NEXTAUTH_URL=http://localhost:3000
      ```
@@ -60,19 +62,16 @@ A full-featured WhatsApp clone that allows users to sign up and log in using ema
 ## Usage
 
 - Sign up or log in using your email and password.
-- Add contacts and start chatting in real-time.
-- Send messages, images, and other media.
-- Create group chats and manage participants.
-- Receive notifications for new messages.
+- Send and accept friend requests to connect with others.
+- Start chatting in real-time after becoming friends.
 
 ## Deployment
 
 ### Azure
 1. Deploy frontend and backend services to Azure App Service.
 2. Use Azure Monitor for application performance tracking.
-3. Configure Azure PostgreSQL, Redis, and MongoDB.
+3. Configure Azure PostgreSQL, Redis, MongoDB, and MQTT.
 4. Set up environment variables in Azure.
-
 
 ## License
 
