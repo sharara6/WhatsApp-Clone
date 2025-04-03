@@ -1,0 +1,176 @@
+openapi: 3.0.4
+info:
+  title: WhatsApp Clone API - WebSocket
+  description: >
+    Real-time WebSocket API for messaging, notifications, and user status updates in a WhatsApp-like chat application.
+    Clients must authenticate using a Bearer token. Supports text messages, media file transfers, delivery receipts, and group chats.
+  version: 1.1.0
+servers:
+  - url: wss://yourdomain.com/ws
+paths:
+  /ws:
+    get:
+      tags:
+        - WebSocket
+      summary: Establish WebSocket connection for real-time messaging.
+      description: >
+        Initiates a WebSocket connection for real-time communication.
+        Clients must provide a valid authentication token in the header.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token for authentication.
+      responses:
+        "101":
+          description: WebSocket handshake successful.
+        "400":
+          description: Bad request. Possible causes include missing or malformed parameters.
+        "401":
+          description: Unauthorized. Invalid or missing authentication token.
+        "403":
+          description: Forbidden. The user does not have the necessary permissions.
+        "429":
+          description: Too Many Requests. Rate limiting applied.
+        "500":
+          description: Internal server error.
+components:
+  schemas:
+    WebSocketMessage:
+      type: object
+      description: Generic wrapper for WebSocket events.
+      properties:
+        event:
+          type: string
+          description: Type of the event.
+          enum:
+            - message_sent
+            - message_received
+            - message_delivered
+            - message_read
+            - user_typing
+            - user_online
+            - group_message
+            - group_created
+            - group_user_added
+            - group_user_removed
+            - file_upload
+            - file_received
+        data:
+          type: object
+          description: Event-specific payload. The structure of this object depends on the event type.
+    Message:
+      type: object
+      description: Represents a chat message.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the message.
+        sender:
+          type: string
+          description: Identifier of the sender.
+        recipient:
+          type: string
+          description: Identifier of the recipient.
+        content:
+          type: string
+          description: Text content of the message.
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the message was sent.
+        status:
+          type: string
+          description: Delivery status of the message.
+          enum:
+            - sent
+            - delivered
+            - read
+    TypingStatus:
+      type: object
+      description: Indicates when a user is typing.
+      properties:
+        userId:
+          type: string
+          description: Identifier of the user who is typing.
+        status:
+          type: string
+          description: Indicates whether the user has started or stopped typing.
+          enum:
+            - started
+            - stopped
+    OnlineStatus:
+      type: object
+      description: Indicates the online status of a user.
+      properties:
+        userId:
+          type: string
+          description: Identifier of the user.
+        online:
+          type: boolean
+          description: True if the user is online, false otherwise.
+    GroupMessage:
+      type: object
+      description: Represents a message sent to a group chat.
+      properties:
+        groupId:
+          type: string
+          description: Unique identifier of the group.
+        sender:
+          type: string
+          description: User ID of the sender.
+        content:
+          type: string
+          description: Message content.
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the message was sent.
+    FileTransfer:
+      type: object
+      description: Represents a file transfer event.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the file transfer.
+        sender:
+          type: string
+          description: Identifier of the sender.
+        recipient:
+          type: string
+          description: Identifier of the recipient.
+        fileUrl:
+          type: string
+          format: uri
+          description: URL where the uploaded file can be accessed.
+        fileType:
+          type: string
+          description: Type of the file.
+          enum:
+            - image
+            - video
+            - document
+            - audio
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the file was uploaded.
+    ErrorResponse:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message explaining the reason for failure.
+        code:
+          type: integer
+          description: HTTP status code.
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - BearerAuth: []

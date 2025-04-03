@@ -1,0 +1,346 @@
+openapi: 3.0.0
+info:
+  title: Messaging API
+  version: 1.0.0
+  description: A simple messaging API supporting conversations, text messages, and voice clips.
+servers:
+  - url: https://api.example.com
+paths:
+  /conversations:
+    get:
+      tags:
+        - Conversations
+      summary: List all conversations
+      description: Retrieves a list of all conversations with pagination.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination.
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of conversations per page.
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: A paginated list of conversations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total number of conversations.
+                  page:
+                    type: integer
+                    description: Current page number.
+                  limit:
+                    type: integer
+                    description: Number of conversations per page.
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+    post:
+      tags:
+        - Conversations
+      summary: Create a new conversation
+      description: Initiates a new conversation with specified participants.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewConversation"
+      responses:
+        "201":
+          description: Conversation created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "400":
+          description: Invalid request.
+  /conversations/{conversationId}:
+    get:
+      tags:
+        - Conversations
+      summary: Get conversation details
+      description: Retrieves details for a specific conversation.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+      responses:
+        "200":
+          description: Conversation details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "404":
+          description: Conversation not found.
+  /conversations/{conversationId}/messages:
+    get:
+      tags:
+        - Messages
+      summary: Retrieve messages from a conversation
+      description: Fetches all text messages for a given conversation with pagination.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+        - name: page
+          in: query
+          description: Page number for pagination.
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of messages per page.
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Paginated list of messages retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total number of messages.
+                  page:
+                    type: integer
+                    description: Current page number.
+                  limit:
+                    type: integer
+                    description: Number of messages per page.
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
+        "404":
+          description: Conversation not found.
+    post:
+      tags:
+        - Messages
+      summary: Send a text message
+      description: Sends a text message in a conversation.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMessage"
+      responses:
+        "201":
+          description: Message sent successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid request.
+        "404":
+          description: Conversation not found.
+  /conversations/{conversationId}/voice-clips:
+    post:
+      tags:
+        - Conversations
+      summary: Send a voice clip
+      description: Sends a short voice clip in a conversation.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                senderId:
+                  type: string
+                  description: ID of the sender.
+                voiceClip:
+                  type: string
+                  format: binary
+                  description: Audio file containing the voice clip.
+                duration:
+                  type: number
+                  description: Duration of the voice clip in seconds.
+              required:
+                - senderId
+                - voiceClip
+      responses:
+        "201":
+          description: Voice clip sent successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoiceClip"
+        "400":
+          description: Invalid request.
+        "404":
+          description: Conversation not found.
+    get:
+      tags:
+        - Conversations
+      summary: Retrieve voice clips
+      description: Fetches all voice clips for a given conversation with pagination.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the conversation.
+        - name: page
+          in: query
+          description: Page number for pagination.
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of voice clips per page.
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Paginated list of voice clips retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total number of voice clips.
+                  page:
+                    type: integer
+                    description: Current page number.
+                  limit:
+                    type: integer
+                    description: Number of voice clips per page.
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VoiceClip"
+        "400":
+          description: Invalid request.
+        "404":
+          description: Conversation not found.
+components:
+  schemas:
+    Conversation:
+      type: object
+      properties:
+        conversationId:
+          type: string
+          description: Unique identifier of the conversation.
+        participants:
+          type: array
+          items:
+            type: string
+          description: List of participant IDs.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was created.
+    NewConversation:
+      type: object
+      properties:
+        participants:
+          type: array
+          items:
+            type: string
+          description: List of participant IDs for the new conversation.
+      required:
+        - participants
+    Message:
+      type: object
+      properties:
+        messageId:
+          type: string
+          description: Unique identifier of the message.
+        conversationId:
+          type: string
+          description: Identifier of the conversation.
+        senderId:
+          type: string
+          description: ID of the sender.
+        content:
+          type: string
+          description: The text content of the message.
+        sentAt:
+          type: string
+          format: date-time
+          description: Timestamp when the message was sent.
+    NewMessage:
+      type: object
+      properties:
+        senderId:
+          type: string
+          description: ID of the sender.
+        content:
+          type: string
+          description: The text content of the message.
+      required:
+        - senderId
+        - content
+    VoiceClip:
+      type: object
+      properties:
+        messageId:
+          type: string
+          description: Unique identifier for the voice clip message.
+        conversationId:
+          type: string
+          description: Identifier of the conversation.
+        senderId:
+          type: string
+          description: ID of the sender.
+        voiceClipUrl:
+          type: string
+          description: URL to access the stored voice clip.
+        duration:
+          type: number
+          description: Duration of the voice clip in seconds.
+        sentAt:
+          type: string
+          format: date-time
+          description: Timestamp when the voice clip was sent.
