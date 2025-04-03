@@ -1,0 +1,107 @@
+openapi: 3.0.4
+info:
+  title: WhatsApps API - Authentication
+  description: Endpoints for user authentication and registration.
+  version: 1.0.0
+servers:
+  - url: https://whatsapps.com/
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate a user.
+      description: Authenticates a user and returns a JWT token for session management.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: The user's email address.
+                password:
+                  type: string
+                  description: The user's password.
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Successfully authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authenticated requests.
+                  userId:
+                    type: string
+                    description: The authenticated user's unique identifier.
+        "401":
+          description: Unauthorized. Invalid credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating invalid credentials.
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user.
+      description: Registers a new user in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The full name of the user.
+                email:
+                  type: string
+                  format: email
+                  description: The user's email address.
+                password:
+                  type: string
+                  description: The user's password.
+              required:
+                - name
+                - email
+                - password
+      responses:
+        "201":
+          description: User successfully registered.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: Unique identifier for the newly registered user.
+                  message:
+                    type: string
+                    description: Confirmation message.
+        "400":
+          description: Bad request. Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating why registration failed.

@@ -1,0 +1,21 @@
+openapi: 3.0.4
+info:
+  title: WhatsApps API - Administration
+  description: Endpoints for administrative tasks such as cleaning inactive profiles.
+  version: 1.0.0
+servers:
+  - url: https://whatsapps.com/
+paths:
+  /admin/cleanup-inactive:
+    post:
+      tags:
+        - Administration
+      summary: Clean inactive profiles.
+      description: |
+        Triggers the cleaning process for user profiles that have been inactive for over 6 months.
+        This endpoint is intended for administrative purposes.
+      responses:
+        "200":
+          description: Inactive profiles cleaned successfully.
+        "400":
+          description: Invalid request or no inactive profiles found.

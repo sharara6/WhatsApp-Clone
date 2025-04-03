@@ -1,0 +1,69 @@
+openapi: 3.0.4
+info:
+  title: WhatsApps API - Media
+  description: Endpoints for media uploads with automatic compression and nudity detection, and for retrieving media files.
+  version: 1.0.0
+servers:
+  - url: https://whatsapps.com/
+paths:
+  /media/upload:
+    post:
+      tags:
+        - Media
+      summary: Upload media.
+      description: |
+        Uploads an image or video. Media files are automatically compressed.
+        Additionally, the uploaded media is processed for nudity detection and will be rejected if inappropriate content is detected.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                uploaderId:
+                  type: string
+                  description: ID of the user uploading the media.
+                file:
+                  type: string
+                  format: binary
+                  description: The media file (image or video).
+              required:
+                - uploaderId
+                - file
+      responses:
+        "201":
+          description: Media uploaded successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mediaId:
+                    type: string
+        "400":
+          description: Invalid request or media rejected due to nudity detection.
+
+  /media/{mediaId}:
+    get:
+      tags:
+        - Media
+      summary: Retrieve media.
+      description: Retrieves and serves the media content based on the provided media ID.
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the media.
+      responses:
+        "200":
+          description: Media retrieved successfully.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Media not found.

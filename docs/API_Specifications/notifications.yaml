@@ -1,0 +1,143 @@
+openapi: 3.0.4
+info:
+  title: WhatsApps API - Notifications
+  description: Endpoints for handling user notifications, pushed via Kafka for real-time updates.
+  version: 1.0.0
+servers:
+  - url: https://whatsapps.com/
+paths:
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get user notifications.
+      description: |
+        Retrieves all unread notifications for the user.
+        Notifications are pushed via Kafka for real-time updates.
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+        # Optional: Pagination example (if applicable)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of notifications to retrieve.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Offset for pagination.
+      responses:
+        "200":
+          description: Notifications retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    notificationId:
+                      type: string
+                    type:
+                      type: string
+                      enum: [message]
+                    content:
+                      type: string
+                    timestamp:
+                      type: string
+                      format: date-time
+              examples:
+                example-1:
+                  summary: A sample list of notifications
+                  value:
+                    - notificationId: "12345"
+                      type: "message"
+                      content: "You have a new message."
+                      timestamp: "2025-04-03T12:34:56Z"
+                    - notificationId: "67890"
+                      type: "message"
+                      content: "Reminder: Meeting at 3 PM."
+                      timestamp: "2025-04-03T10:00:00Z"
+        "404":
+          description: No notifications found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error-example:
+                  summary: Error example when no notifications are found
+                  value:
+                    code: "404"
+                    message: "No notifications found for the specified user."
+
+  /notifications/{notificationId}/read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark notification as read.
+      description: Marks a specific notification as read by the user.
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the notification.
+      responses:
+        "200":
+          description: Notification marked as read successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificationId:
+                    type: string
+                  status:
+                    type: string
+                    example: "read"
+                  updatedAt:
+                    type: string
+                    format: date-time
+              examples:
+                success:
+                  summary: Successful update response
+                  value:
+                    notificationId: "12345"
+                    status: "read"
+                    updatedAt: "2025-04-03T12:45:00Z"
+        "404":
+          description: Notification not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error-example:
+                  summary: Error example when notification is not found
+                  value:
+                    code: "404"
+                    message: "Notification with the specified ID was not found."
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code identifier.
+        message:
+          type: string
+          description: Detailed error message.
