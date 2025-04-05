@@ -1,0 +1,45 @@
+@startuml
+set separator none
+title WhatsApp - System Context
+
+left to right direction
+
+skinparam {
+  arrowFontSize 10
+  defaultTextAlignment center
+  wrapWidth 200
+  maxMessageSize 100
+}
+
+hide stereotype
+
+skinparam rectangle<<OAuth>> {
+  BackgroundColor #2d882d
+  FontColor #ffffff
+  BorderColor #1f5f1f
+  shadowing false
+}
+skinparam person<<User>> {
+  BackgroundColor #116611
+  FontColor #ffffff
+  BorderColor #0b470b
+  shadowing false
+}
+skinparam rectangle<<WhatsApp>> {
+  BackgroundColor #2d882d
+  FontColor #ffffff
+  BorderColor #1f5f1f
+  shadowing false
+}
+
+person "==User\n<size:10>[Person]</size>" <<User>> as User
+rectangle "==OAuth Authentication\n<size:10>[External Service]</size>" <<OAuth>> as OAuth
+rectangle "==WhatsApp\n<size:10>[Software System]</size>" <<WhatsApp>> as WhatsApp
+
+User .[#707070,thickness=2].> WhatsApp : "<color:#707070>1. Opens app"
+WhatsApp .[#707070,thickness=2].> OAuth : "<color:#707070>2. Redirects for login"
+User .[#707070,thickness=2].> OAuth : "<color:#707070>3. Logs in"
+OAuth .[#707070,thickness=2].> WhatsApp : "<color:#707070>4. Returns token"
+User .[#707070,thickness=2].> WhatsApp : "<color:#707070>5. Sends/Receives messages"
+
+@enduml

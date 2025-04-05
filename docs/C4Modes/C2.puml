@@ -1,0 +1,95 @@
+@startuml
+set separator none
+title Whatsapp - Containers
+
+left to right direction
+
+skinparam {
+  arrowFontSize 10
+  defaultTextAlignment center
+  wrapWidth 200
+  maxMessageSize 100
+}
+
+hide stereotype
+
+skinparam rectangle<<APIGateway>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam rectangle<<AuthSystem>> {
+  BackgroundColor #2d882d
+  FontColor #ffffff
+  BorderColor #1f5f1f
+}
+skinparam rectangle<<Cache>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam database<<ChatDatabase>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam rectangle<<ChatService>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam database<<Database>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam rectangle<<NotificationService>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam database<<NotificationDatabase>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+skinparam person<<User>> {
+  BackgroundColor #116611
+  FontColor #ffffff
+  BorderColor #0b470b
+}
+skinparam rectangle<<WebApp>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+}
+
+person "==User\n<size:10>[Person]</size>" <<User>> as User
+rectangle "==Auth System\n<size:10>[OAuth Provider]</size>" <<AuthSystem>> as AuthSystem
+
+rectangle "Whatsapp\n<size:10>[Software System]</size>" {
+  rectangle "==Chat Service\n<size:10>[Container]</size>" <<ChatService>> as ChatService
+  rectangle "==Notification Service\n<size:10>[Container]</size>" <<NotificationService>> as NotificationService
+  rectangle "==Cache\n<size:10>[Container]</size>" <<Cache>> as Cache
+  database "==Chat Database\n<size:10>[Container]</size>" <<ChatDatabase>> as ChatDatabase
+  database "==Notification Database\n<size:10>[Container]</size>" <<NotificationDatabase>> as NotificationDatabase
+  database "==Main Database\n<size:10>[Container]</size>" <<Database>> as Database
+  rectangle "==Web Application\n<size:10>[Container]</size>" <<WebApp>> as WebApp
+  rectangle "==API Gateway\n<size:10>[Container]</size>" <<APIGateway>> as APIGateway
+}
+
+' Numbered Interactions (Updated, API Gateway Role)
+User .[#707070,thickness=2].> WebApp : "1. Uses"
+WebApp .[#707070,thickness=2].> AuthSystem : "2. Redirects to OAuth"
+AuthSystem .[#707070,thickness=2].> User : "3. Authenticate & return token"
+User .[#707070,thickness=2].> WebApp : "4. Sends token"
+NotificationService .[#707070,thickness=2].> NotificationDatabase : "5. Read/Write notifications"
+NotificationService .[#707070,thickness=2].> User : "6. Push notification"
+WebApp .[#707070,thickness=2].> APIGateway : "7. Forwards token with API request"
+APIGateway .[#707070,thickness=2].> AuthSystem : "8. Verifies token"
+APIGateway .[#707070,thickness=2].> Cache : "9. Check Cache for session"
+APIGateway .[#707070,thickness=2].> Database : "10. Validate User"
+APIGateway .[#707070,thickness=2].> ChatService : "11. Forward chat request"
+ChatService .[#707070,thickness=2].> ChatDatabase : "12. Read/Write messages"
+
+@enduml
