@@ -1,0 +1,114 @@
+@startuml
+set separator none
+title Whastapp - Containers
+
+left to right direction
+
+skinparam {
+  arrowFontSize 10
+  defaultTextAlignment center
+  wrapWidth 200
+  maxMessageSize 100
+}
+
+hide stereotype
+
+skinparam rectangle<<Whastapp.APIGateway>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam rectangle<<AuthSystem>> {
+  BackgroundColor #2d882d
+  FontColor #ffffff
+  BorderColor #1f5f1f
+  shadowing false
+}
+skinparam rectangle<<Whastapp.Cache>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam database<<Whastapp.ChatDatabase>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam rectangle<<Whastapp.Chat_Service>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam database<<Whastapp.Database>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam rectangle<<Whastapp.LoadBalancer>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam database<<Whastapp.NotificationDatabase>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam rectangle<<Whastapp.Notification_Service>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam person<<User>> {
+  BackgroundColor #116611
+  FontColor #ffffff
+  BorderColor #0b470b
+  shadowing false
+}
+skinparam rectangle<<Whastapp.WebApplication>> {
+  BackgroundColor #55aa55
+  FontColor #ffffff
+  BorderColor #3b763b
+  shadowing false
+}
+skinparam rectangle<<Whastapp>> {
+  BorderColor #1f5f1f
+  FontColor #1f5f1f
+  shadowing false
+}
+
+person "==User\n<size:10>[Person]</size>" <<User>> as User
+rectangle "==Auth System\n<size:10>[Software System]</size>" <<AuthSystem>> as AuthSystem
+
+rectangle "Whastapp\n<size:10>[Software System]</size>" <<Whastapp>> {
+  rectangle "==Chat_Service\n<size:10>[Container]</size>" <<Whastapp.Chat_Service>> as Whastapp.Chat_Service
+  rectangle "==Notification_Service\n<size:10>[Container]</size>" <<Whastapp.Notification_Service>> as Whastapp.Notification_Service
+  rectangle "==Load Balancer\n<size:10>[Container]</size>" <<Whastapp.LoadBalancer>> as Whastapp.LoadBalancer
+  rectangle "==Cache\n<size:10>[Container]</size>" <<Whastapp.Cache>> as Whastapp.Cache
+  database "==Chat Database\n<size:10>[Container]</size>" <<Whastapp.ChatDatabase>> as Whastapp.ChatDatabase
+  database "==Notification Database\n<size:10>[Container]</size>" <<Whastapp.NotificationDatabase>> as Whastapp.NotificationDatabase
+  database "==Database\n<size:10>[Container]</size>" <<Whastapp.Database>> as Whastapp.Database
+  rectangle "==Web Application\n<size:10>[Container]</size>" <<Whastapp.WebApplication>> as Whastapp.WebApplication
+  rectangle "==API Gateway\n<size:10>[Container]</size>" <<Whastapp.APIGateway>> as Whastapp.APIGateway
+}
+
+User .[#707070,thickness=2].> Whastapp.WebApplication : "<color:#707070>Uses"
+AuthSystem .[#707070,thickness=2].> Whastapp.WebApplication : "<color:#707070>Redirect to whatsapp"
+AuthSystem .[#707070,thickness=2].> Whastapp.Database : "<color:#707070>Check from"
+Whastapp.WebApplication .[#707070,thickness=2].> Whastapp.Cache : "<color:#707070>Retrive from"
+Whastapp.WebApplication .[#707070,thickness=2].> Whastapp.APIGateway : "<color:#707070>check request rate"
+Whastapp.APIGateway .[#707070,thickness=2].> Whastapp.LoadBalancer : "<color:#707070>request go to"
+Whastapp.LoadBalancer .[#707070,thickness=2].> Whastapp.Chat_Service : "<color:#707070>delegate request to"
+Whastapp.LoadBalancer .[#707070,thickness=2].> Whastapp.Notification_Service : "<color:#707070>delegate request to"
+Whastapp.Notification_Service .[#707070,thickness=2].> Whastapp.NotificationDatabase : "<color:#707070>Reads from and writes to"
+Whastapp.APIGateway .[#707070,thickness=2].> AuthSystem : "<color:#707070>Authorize user"
+Whastapp.Chat_Service .[#707070,thickness=2].> Whastapp.ChatDatabase : "<color:#707070>Reads from and writes to"
+@enduml

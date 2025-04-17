@@ -1,167 +1,229 @@
-# Architectural Decision Records (ADRs)
+ADR-001: Architectural Style Selection
+Date: 20-03-2025
+Status: Accepted
 
-## ADR-001: Architectural Style Selection  
-**Date:** 20-03-2025  
-**Status:** Accepted  
+Context
+The system requires scalability, high availability, and modularity to support real-time messaging while maintaining ease of deployment and updates.
 
-### Context  
-The system requires **scalability, high availability, and modularity** to support real-time messaging while maintaining ease of deployment and updates.  
+Decision
+Adopt a microservices architecture to ensure independent service scalability and maintainability.
 
-### Decision  
-Adopt a **microservices architecture** to ensure independent service scalability and maintainability.  
+Justification
+Each service can scale independently based on workload.
 
-### Justification  
-- **Scalability:** Each service can scale independently based on workload.  
-- **Fault Isolation:** A failure in one service does not impact others.  
-- **Technology Flexibility:** Services can use different languages and databases.  
+Failures are isolated to individual services.
 
-### Consequences  
-#### Pros  
-- ✅ Independent scaling of services  
-- ✅ Faster updates and feature deployment  
-- ✅ Resilient system with fault tolerance  
+Services can be built using different technologies suited to their needs.
 
-#### Cons  
-- ❌ Increased operational complexity  
-- ❌ Requires orchestration and monitoring tools  
+Consequences
+Pros
 
----
+✅ Independent scaling of services
 
-## ADR-002: Programming Languages Selection  
-**Date:** 20-03-2025  
-**Status:** Accepted  
+✅ Faster updates and deployments
 
-### Context  
-The system requires **high-performance backend services**, **real-time capabilities**, and a **dynamic frontend** for an optimal user experience.  
+✅ Improved system resilience
 
-### Decision  
-- **Go (Golang):** Backend microservices for efficiency and concurrency.  
-- **Node.js :** WebSockets for real-time chat and API gateway.  
-- **React (Next.js):** Frontend for a modern, responsive UI.  
+Cons
 
-### Justification  
-- **Go:** Fast execution, low memory footprint, and efficient concurrency.  
-- **Node.js:** Excellent for handling WebSockets and asynchronous operations.  
-- **React:** Component-based architecture, SEO benefits with Next.js.  
+❌ Increased deployment and monitoring complexity
 
-### Consequences  
-#### Pros  
-- ✅ High-performance backend with Go  
-- ✅ Scalable real-time communication with Node.js  
-- ✅ Rich user experience with React  
+❌ Requires service discovery and orchestration
 
-#### Cons  
-- ❌ Requires developers familiar with multiple technologies  
-- ❌ Complexity in maintaining different tech stacks  
+ADR-002: Programming Languages Selection
+Date: 20-03-2025
+Status: Accepted
 
----
+Context
+The system requires efficient real-time capabilities, strong performance, and developer-friendly tooling for building scalable backend services.
 
-## ADR-003: API Communication Strategy  
-**Date:** 20-03-2025  
-**Status:** Under review  
+Decision
+Go (Golang): For performance-intensive microservices
 
-### Context  
-The system must facilitate **efficient inter-service communication** while ensuring **low latency** for real-time interactions.  
+TypeScript (Node.js): For WebSocket communication, API gateway, and developer tools
 
-### Decision  
-- **REST API** for client-to-server communication (frontend to backend).  
-- **gRPC** for inter-service communication (microservices).  
-- **WebSockets** for real-time message updates.  
+Justification
+Go provides excellent performance and concurrency with low resource usage.
 
-### Justification  
-- **REST API:** Simple, widely adopted, and compatible with frontend technologies.  
-- **gRPC:** Faster communication with low overhead and strong typing.  
-- **WebSockets:** Persistent connection for real-time updates.  
+TypeScript improves code safety, maintainability, and tooling in Node.js environments.
 
-### Consequences  
-#### Pros  
-- ✅ Faster and efficient service communication with gRPC  
-- ✅ Real-time updates using WebSockets  
-- ✅ Compatibility with external clients via REST  
+Consequences
+Pros
 
-#### Cons  
-- ❌ Added complexity in managing multiple communication protocols  
-- ❌ Requires monitoring and load balancing  
+✅ High-performance backend with Go
 
----
+✅ Safe and scalable service development with TypeScript
 
-## ADR-004: Authentication Method  
-**Date:** 20-03-2025  
-**Status:** Accepted 
+✅ Ability to use the right tool/language for the job
 
-### Context  
-The system must provide **secure and scalable user authentication**, preventing unauthorized access while protecting user data.  
+Cons
 
-### Decision  
-Use **JWT (JSON Web Token)** for authentication and **OAuth 2.0** for third-party login options.  
+❌ Increased complexity in hiring and onboarding across languages
 
-### Justification  
-- **JWT:** Stateless authentication, reducing database queries.  
-- **OAuth 2.0:** Enables Google and Facebook logins for convenience.  
+❌ Slightly more complex testing and CI pipelines
 
-### Consequences  
-#### Pros  
-- ✅ Secure, scalable authentication  
-- ✅ Supports third-party logins  
-- ✅ Easy to integrate with mobile and web clients  
+ADR-003: Frameworks and Tools Selection
+Date: 20-03-2025
+Status: Accepted
 
-#### Cons  
-- ❌ Token expiration and refresh mechanisms required  
-- ❌ Security risks if tokens are not handled correctly  
+Context
+To support real-time communication, REST APIs, and service orchestration, the system must rely on reliable and lightweight frameworks.
 
----
+Decision
+Node.js runtime (with TypeScript) for WebSocket services and API gateway
 
-## ADR-005: Database Selection  
-**Date:** 19-03-2025  
-**Status:** Under review  
+Express.js for REST API services
 
-### Context  
-The system requires **high-speed message storage and retrieval**, **user authentication**, and **real-time status tracking**.  
+ws library for WebSocket server implementation
 
-### Decision  
-- **PostgreSQL:** For relational data (users, contacts, authentication).  
-- **Redis:** For caching and real-time session management.  
-- **MongoDB:** For chat messages and unstructured data storage.  
+Justification
+Node.js is efficient for I/O-bound tasks and real-time communication
 
-### Justification  
-- **PostgreSQL:** Ensures **ACID compliance** for user data.  
-- **Redis:** Provides **fast caching**, reducing load on databases.  
-- **MongoDB:** Flexible for chat history and messages.  
+Express is a lightweight, flexible choice for building REST APIs
 
-### Consequences  
-#### Pros  
-- ✅ Optimized read/write speeds  
-- ✅ Scalable data management  
-- ✅ Efficient structured and unstructured storage  
+ws is performant and simple to integrate for WebSocket support
 
-#### Cons  
-- ❌ Managing multiple databases adds complexity  
-- ❌ Requires data synchronization across databases  
+Consequences
+Pros
 
----
+✅ Efficient real-time capabilities
 
-## ADR-006: Message Broker Selection  
-**Date:** 20-03-2025  
-**Status:** under review  
+✅ Modular and scalable backend stack
 
-### Context  
-The system needs **real-time message delivery** and **event-driven architecture** for efficient microservices communication.  
+✅ Strong TypeScript support
 
-### Decision  
-Use **RabbitMQ** as the primary message broker, with **Kafka** for event streaming and analytics.  
+Cons
 
-### Justification  
-- **RabbitMQ:** Best suited for **real-time messaging, guaranteed delivery**, and **priority queuing**.  
-- **Kafka:** Handles **chat analytics**, **event logs**, and **large-scale message processing**.  
+❌ Requires robust handling of WebSocket state
 
-### Consequences  
-#### Pros  
-- ✅ Reliable, scalable messaging system  
-- ✅ Supports both synchronous and asynchronous communication  
-- ✅ Improves fault tolerance  
+❌ Needs structured service communication and monitoring
 
-#### Cons  
-- ❌ Requires monitoring and scaling configurations  
-- ❌ Message persistence adds some latency  
+ADR-004: API Communication Strategy
+Date: 20-03-2025
+Status: Under Review
 
----
+Context
+The system must support both real-time data transfer and standard client-server communication between services.
+
+Decision
+REST API for standard communication between services and clients
+
+WebSockets for real-time chat and live status updates
+
+Justification
+REST is standardized, simple, and well-supported
+
+WebSockets offer persistent bi-directional communication ideal for messaging
+
+Consequences
+Pros
+
+✅ Clear separation of real-time and request-based communication
+
+✅ REST APIs are easy to integrate and document
+
+✅ WebSockets offer low-latency updates
+
+Cons
+
+❌ Increases protocol management complexity
+
+❌ Requires load balancing and monitoring for persistent connections
+
+ADR-005: Authentication Method
+Date: 20-03-2025
+Status: Accepted
+
+Context
+The system must ensure secure, scalable user authentication with support for third-party login integrations.
+
+Decision
+Use JWT (JSON Web Tokens) for stateless authentication
+
+Integrate OAuth 2.0 for login with external providers (e.g., Google, Facebook)
+
+Justification
+JWT enables fast, stateless access control
+
+OAuth 2.0 enhances user convenience and security via trusted identity providers
+
+Consequences
+Pros
+
+✅ Stateless and scalable authentication
+
+✅ Easy to use across mobile and backend services
+
+✅ Supports social login
+
+Cons
+
+❌ Requires token lifecycle management
+
+❌ Must handle token security carefully (e.g., expiration, storage)
+
+ADR-006: Database Selection
+Date: 19-03-2025
+Status: Under Review
+
+Context
+The system must manage user authentication, real-time message storage, and session/state tracking.
+
+Decision
+PostgreSQL for relational data (users, auth, metadata)
+
+MongoDB for chat messages and unstructured content
+
+Redis for in-memory caching and session tracking
+
+Justification
+PostgreSQL is reliable and ACID-compliant
+
+MongoDB provides flexible schema for chat and logs
+
+Redis ensures low-latency reads for sessions and status
+
+Consequences
+Pros
+
+✅ Optimized for a mix of structured and unstructured data
+
+✅ Fast caching with Redis
+
+✅ Flexible querying across databases
+
+Cons
+
+❌ Increased operational overhead
+
+❌ Requires careful data synchronization and monitoring
+
+ADR-007: Message Broker Selection
+Date: 20-03-2025
+Status: Under Review
+
+Context
+The system relies on real-time events and asynchronous communication between microservices.
+
+Decision
+Use Apache Kafka for event streaming, message queueing, and analytics.
+
+Justification
+Kafka is scalable, fault-tolerant, and ideal for high-throughput systems
+
+Supports both asynchronous microservice events and system-wide analytics
+
+Consequences
+Pros
+
+✅ High reliability and performance
+
+✅ Built-in support for pub/sub and event logs
+
+✅ Scales well with service demands
+
+Cons
+
+❌ Requires expertise in setup and monitoring
+
+❌ Adds some complexity for small-scale deployments

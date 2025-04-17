@@ -1,0 +1,446 @@
+openapi: 3.0.4
+info:
+  title: WhatsApps API - User Management
+  description: Endpoints for managing user profiles, settings, security, and user interactions.
+  version: 1.1.0
+servers:
+  - url: https://whatsapps.com/
+paths:
+  /users/{userId}:
+    get:
+      tags:
+        - User Management
+      summary: Get user profile.
+      description: Retrieves the profile information of a specific user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      responses:
+        "200":
+          description: User profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  onlineStatus:
+                    type: boolean
+                    description: Indicates if the user is currently online.
+                  profilePictureUrl:
+                    type: string
+                    description: URL of the user's profile picture.
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+        "404":
+          description: User not found.
+    patch:
+      tags:
+        - User Management
+      summary: Update user profile.
+      description: Allows a user to update their profile information.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The full name of the user.
+                email:
+                  type: string
+                  format: email
+                  description: The user's email address.
+              example:
+                name: "John Doe"
+                email: "john.doe@example.com"
+      responses:
+        "200":
+          description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  updatedAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Invalid input data.
+        "404":
+          description: User not found.
+    delete:
+      tags:
+        - User Management
+      summary: Delete or deactivate a user account.
+      description: Allows a user to delete or deactivate their account.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      responses:
+        "200":
+          description: User account deleted/deactivated successfully.
+        "404":
+          description: User not found.
+
+  /users/{userId}/settings:
+    get:
+      tags:
+        - User Management
+      summary: Get user settings.
+      description: Retrieves the notification and privacy settings for a user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      responses:
+        "200":
+          description: User settings retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receiveNotifications:
+                    type: boolean
+                    description: Whether the user receives notifications.
+                  showOnlineStatus:
+                    type: boolean
+                    description: Whether the user’s online status is visible.
+        "404":
+          description: User not found.
+    patch:
+      tags:
+        - User Management
+      summary: Update user settings.
+      description: Allows a user to partially update their notification and privacy settings.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiveNotifications:
+                  type: boolean
+                  description: Whether the user wants to receive notifications.
+                showOnlineStatus:
+                  type: boolean
+                  description: Whether the user wants their online status to be visible.
+              example:
+                receiveNotifications: true
+                showOnlineStatus: false
+      responses:
+        "200":
+          description: User settings updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receiveNotifications:
+                    type: boolean
+                  showOnlineStatus:
+                    type: boolean
+                  updatedAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Invalid input data.
+        "404":
+          description: User not found.
+
+  /users/{userId}/block:
+    post:
+      tags:
+        - User Management
+      summary: Block a user.
+      description: Allows a user to block another user, preventing unwanted communication.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the user initiating the block.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blockUserId:
+                  type: string
+                  description: Unique identifier of the user to be blocked.
+              required:
+                - blockUserId
+      responses:
+        "200":
+          description: User blocked successfully.
+        "400":
+          description: Invalid request.
+        "404":
+          description: User not found.
+
+  /users/{userId}/blocked:
+    get:
+      tags:
+        - User Management
+      summary: List blocked users.
+      description: Retrieves a list of users that have been blocked by the specified user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      responses:
+        "200":
+          description: Blocked users list retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blockedUsers:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of user IDs that are blocked.
+        "404":
+          description: User not found.
+
+  /users/{userId}/password:
+    patch:
+      tags:
+        - User Management
+      summary: Change user password.
+      description: Allows a user to change their password.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                  description: The user's current password.
+                newPassword:
+                  type: string
+                  description: The new password to be set.
+              required:
+                - currentPassword
+                - newPassword
+      responses:
+        "200":
+          description: Password changed successfully.
+        "400":
+          description: Invalid input data or current password incorrect.
+        "404":
+          description: User not found.
+
+  /users/{userId}/password-reset:
+    post:
+      tags:
+        - User Management
+      summary: Initiate password reset.
+      description: Initiates the password reset process by sending a reset link or code to the user's email.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: The user's email address.
+              required:
+                - email
+      responses:
+        "200":
+          description: Password reset initiated successfully.
+        "400":
+          description: Invalid request.
+        "404":
+          description: User not found.
+
+  /users/{userId}/profile-picture:
+    put:
+      tags:
+        - User Management
+      summary: Update profile picture.
+      description: Allows a user to update their profile picture.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The image file to upload.
+      responses:
+        "200":
+          description: Profile picture updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profilePictureUrl:
+                    type: string
+                    description: URL of the new profile picture.
+                  updatedAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Invalid file format or upload error.
+        "404":
+          description: User not found.
+
+  /users/{userId}/activity-logs:
+    get:
+      tags:
+        - User Management
+      summary: Get user activity logs.
+      description: Retrieves a log of recent activities performed by the user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user.
+      responses:
+        "200":
+          description: Activity logs retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                        action:
+                          type: string
+                          description: Description of the activity.
+        "404":
+          description: User not found.
+
+  /users/search:
+    get:
+      tags:
+        - User Management
+      summary: Search for users.
+      description: Allows searching for users by name or email.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search term for matching user name or email.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of results to return.
+      responses:
+        "200":
+          description: Search results retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+        "400":
+          description: Invalid search query.
