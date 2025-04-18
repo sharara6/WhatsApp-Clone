@@ -24,11 +24,11 @@ const getUserById = async (userId, token) => {
 
 export const getUsersForSidebar = async (req, res) => {
   try {
-    // Get users directly from user service
+ 
     const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:5001';
     
     try {
-      // Forward the authentication cookie
+     
       const response = await axios.get(`${userServiceUrl}/api/users`, {
         headers: {
           Cookie: req.headers.cookie || ''
@@ -36,7 +36,7 @@ export const getUsersForSidebar = async (req, res) => {
         withCredentials: true
       });
       
-      // Filter out the logged-in user
+      
       const loggedInUserId = req.user._id;
       const filteredUsers = response.data.filter(user => user._id !== loggedInUserId);
       
@@ -76,7 +76,7 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    // Verify receiver exists in user service
+    
     const token = req.cookies.jwt;
     const receiver = await getUserById(receiverId, token);
     
@@ -86,7 +86,7 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      // Upload base64 image to cloudinary
+      
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
@@ -100,7 +100,7 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    // Emit new message event to the receiver using Socket.io
+    
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);

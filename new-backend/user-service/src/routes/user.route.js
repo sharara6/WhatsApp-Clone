@@ -4,7 +4,7 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Get all users (for message service to sync with)
+
 router.get("/", protectRoute, async (req, res) => {
     try {
         const users = await User.find().select("-password");
@@ -15,7 +15,7 @@ router.get("/", protectRoute, async (req, res) => {
     }
 });
 
-// Get user by ID
+
 router.get("/:id", protectRoute, async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select("-password");

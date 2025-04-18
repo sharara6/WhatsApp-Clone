@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
     console.log(`User ${userId} connected with socket ${socket.id}`);
   }
 
-  // Send online users to all connected users
+  
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {

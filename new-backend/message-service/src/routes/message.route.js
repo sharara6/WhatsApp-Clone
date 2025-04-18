@@ -9,13 +9,12 @@ router.get("/users", protectRoute, getUsersForSidebar);
 router.get("/:id", protectRoute, getMessages);
 router.post("/send/:id", protectRoute, sendMessage);
 
-// Proxy route to get user profile from user service
 router.get("/user/:userId", protectRoute, async (req, res) => {
     try {
         const { userId } = req.params;
         const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:5001';
         
-        // Forward the request to user service
+
         const response = await axios.get(`${userServiceUrl}/api/users/${userId}`, {
             headers: {
                 Cookie: req.headers.cookie || ''

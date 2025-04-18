@@ -111,10 +111,10 @@ export const checkAuth = (req, res) => {
     }
 };
 
-// New endpoint for token validation from other services
+
 export const validateToken = (req, res) => {
     try {
-        // The protectRoute middleware already verified the token and attached the user
+        
         if (!req.user) {
             return res.status(401).json({ 
                 valid: false,
@@ -122,7 +122,7 @@ export const validateToken = (req, res) => {
             });
         }
         
-        // Return user data for the message service
+        
         res.status(200).json({ 
             valid: true, 
             user: {
