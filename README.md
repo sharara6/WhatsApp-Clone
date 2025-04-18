@@ -11,11 +11,15 @@ A full-featured one-to-one messaging app that allows users to sign up and log in
 - **Friend Requests**: Send and accept friend requests before initiating chats.
 - **Online Status**: Show when users are online.
 - **Notifications**: Push and in-app notifications for new messages.
+- **Video Compression**: Automatic compression of video files before sharing.
 
 ## Tech Stack
 
 - **Frontend**: React (Next.js) with Tailwind CSS
 - **Backend**: Go (Golang) for microservices, Node.js for WebSockets and API gateway
+- **Microservices**:
+  - **API Gateway**: Node.js service for routing and authentication
+  - **Video Compression Service**: Go-based service for efficient video compression using FFmpeg
 - **Database**:
   - PostgreSQL for relational data (users, authentication)
   - Redis for caching and real-time session management
@@ -27,17 +31,20 @@ A full-featured one-to-one messaging app that allows users to sign up and log in
 ## Installation
 
 1. Clone the repository:
+
    ```sh
    git clone https://github.com/Karim-Ashraf1/WhatsApp-Clone.git
    cd WhatsApp-Clone
    ```
 
 2. Install dependencies:
+
    ```sh
    npm install
    ```
 
 3. Configure environment variables:
+
    - Create a `.env` file in the root directory.
    - Add database and authentication keys:
      ```env
@@ -50,6 +57,7 @@ A full-featured one-to-one messaging app that allows users to sign up and log in
      ```
 
 4. Run database migrations:
+
    ```sh
    npx prisma migrate dev
    ```
@@ -68,6 +76,7 @@ A full-featured one-to-one messaging app that allows users to sign up and log in
 ## Deployment
 
 ### Azure
+
 1. Deploy frontend and backend services to Azure App Service.
 2. Use Azure Monitor for application performance tracking.
 3. Configure Azure PostgreSQL, Redis, MongoDB, and MQTT.
@@ -80,4 +89,3 @@ This project is licensed under the MIT License.
 ## Contact
 
 For any issues, open an issue or contact [nour.awad094@gmail.com].
-

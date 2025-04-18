@@ -398,3 +398,13 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Node.js env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Video Compression Service
+backend/Video-Compression-Service/.env
