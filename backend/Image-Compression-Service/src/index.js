@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-const imageCompressionRouter = require('./routes/ImageCompression.route');
+const imageCompressionRouter = require('./routes/compression.route');
 
 dotenv.config();
 

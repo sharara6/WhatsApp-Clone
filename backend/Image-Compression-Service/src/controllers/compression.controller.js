@@ -1,7 +1,6 @@
 const sharp = require('sharp');
 
-
-export const compressImage = async (req, res) => {
+const compressImage = async (req, res) => {
     const file = req.file;
     if (!file) return res.status(400).send('No file uploaded');
 
@@ -21,6 +20,6 @@ export const compressImage = async (req, res) => {
     }
 }
 
-export const compressVideo = async (req, res) => {
-  // to be implemented
-}
+module.exports = {
+  compressImage
+};
