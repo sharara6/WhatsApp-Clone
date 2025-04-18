@@ -69,6 +69,14 @@ const validationSchemas = {
         mediaUrl: Joi.string().uri().optional()
       })
     })
+  },
+  videoCompression: {
+    '/compress': celebrate({
+      [Segments.BODY]: Joi.object({
+        inputPath: Joi.string().required(),
+        outputPath: Joi.string().required()
+      })
+    })
   }
 };
 
@@ -165,6 +173,11 @@ function registerProxyRoutes(app) {
       route: `${API_VERSION}/media`,
       target: env.MEDIA_SERVICE_URL,
       validations: {}
+    },
+    {
+      route: `${API_VERSION}/video-compression`,
+      target: env.VIDEO_COMPRESSION_SERVICE_URL,
+      validations: validationSchemas.videoCompression
     }
   ];
 
