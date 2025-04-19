@@ -6,23 +6,46 @@ A microservice for compressing video files using FFmpeg with configurable qualit
 
 - HTTP API for video compression
 - Configurable compression quality (CRF 0-51)
+- In-memory video processing
 - Integration with API Gateway
 - Health check endpoint
-- Serves compressed files for download
+- Docker support
 
-## Requirements
+## Running with Docker
 
-- Go 1.16 or higher
+The easiest way to run this service is with Docker:
+
+```bash
+# Build and run using docker-compose from the root directory:
+docker-compose up --build video-compression-service
+
+# Or build and run just this service:
+cd backend/Video-Compression-Service
+docker build -t video-compression-service .
+docker run -p 8080:8080 video-compression-service
+```
+
+## Manual Setup
+
+If you prefer to run without Docker:
+
+### Requirements
+
+- Go 1.18 or higher
 - FFmpeg installed on the system
 
-## Setup
+### Build and Run
 
 1. Make sure FFmpeg is installed on your system
-2. Build the service:
+2. Navigate to the service directory:
    ```
-   go build -o video-compression-service
+   cd backend/Video-Compression-Service
    ```
-3. Run the service:
+3. Build the service:
+   ```
+   go build -buildvcs=false -o video-compression-service .
+   ```
+4. Run the service:
    ```
    ./video-compression-service
    ```
@@ -47,13 +70,10 @@ The service will start on port 8080 by default.
 
 **Response:**
 
-```json
-{
-  "success": true,
-  "message": "Video compressed successfully",
-  "compressedUrl": "/files/compressed_1234567890_example.mp4"
-}
-```
+The compressed video is returned directly in the response body with appropriate headers:
+
+- `Content-Type`: Matching the video format (e.g., video/mp4)
+- `Content-Disposition`: attachment; filename=compressed_example.mp4
 
 ### 2. Health Check
 
@@ -67,12 +87,10 @@ The service will start on port 8080 by default.
 }
 ```
 
-### 3. Download Compressed Video
-
-**Endpoint:** `GET /files/{filename}`
-
-Serves the compressed video files.
-
 ## API Gateway Integration
 
-This service is configured to work with the API Gateway at the `/video-compression` endpoint. The API Gateway routes requests to this service running on localhost:8080.
+This service is configured to work with the API Gateway at the `/video-compression` endpoint.
+
+When running with Docker, the API Gateway routes requests to this service using the Docker network: `http://video-compression-service:8080`.
+
+When running standalone, update the API Gateway routes to point to `http://localhost:8080`.
