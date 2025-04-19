@@ -7,7 +7,7 @@ const ROUTES = [
             max: 5
         },
         proxy: {
-            target: "http://localhost:8080",
+            target: "http://video-compression-service:8080",
             changeOrigin: true,
             pathRewrite: {
                 [`^/video-compression`]: '',

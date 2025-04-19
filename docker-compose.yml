@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build:
+      context: ./API-Gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+    depends_on:
+      - video-compression-service
+
+  video-compression-service:
+    build:
+      context: ./backend/Video-Compression-Service
+    container_name: video-compression-service
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    volumes:
+      - temp-data:/app/temp
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  temp-data:
