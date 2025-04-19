@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";
@@ -7,7 +8,6 @@ import { connectDB } from "./lib/db.js";
 import messageRoutes from "./routes/message.route.js";
 import { app, server, io } from "./lib/socket.js";
 
-dotenv.config();
 
 const PORT = process.env.PORT || 5002;
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:5001";
