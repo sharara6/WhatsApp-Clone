@@ -12,10 +12,10 @@ COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=5000
+ENV PORT=5002
 
-# Expose the port
-EXPOSE 5000
+# Expose the port and the WebSocket port
+EXPOSE 5002
 
 # Run the application
-CMD ["node", "server.js"] 
+CMD ["node", "src/index.js"] 

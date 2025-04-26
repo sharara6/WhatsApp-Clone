@@ -13,11 +13,15 @@ export const useChatStore = create((set, get) => ({
   getUsers: async () => {
     set({ isUsersLoading: true });
     try {
-      const res = await messageApiClient.get("/messages/users");
+      console.log("Fetching users from:", `${messageApiClient.defaults.baseURL}/users`);
+      const res = await messageApiClient.get("/users");
       set({ users: res.data });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Error loading users");
       console.error("Error fetching users:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.status, error.response.data);
+      }
     } finally {
       set({ isUsersLoading: false });
     }
@@ -26,23 +30,32 @@ export const useChatStore = create((set, get) => ({
   getMessages: async (userId) => {
     set({ isMessagesLoading: true });
     try {
-      const res = await messageApiClient.get(`/messages/${userId}`);
+      console.log("Fetching messages from:", `${messageApiClient.defaults.baseURL}/${userId}`);
+      const res = await messageApiClient.get(`/${userId}`);
       set({ messages: res.data });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Error loading messages");
       console.error("Error fetching messages:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.status, error.response.data);
+      }
     } finally {
       set({ isMessagesLoading: false });
     }
   },
+  
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
-      const res = await messageApiClient.post(`/messages/send/${selectedUser._id}`, messageData);
+      console.log("Sending message to:", `${messageApiClient.defaults.baseURL}/send/${selectedUser._id}`);
+      const res = await messageApiClient.post(`/send/${selectedUser._id}`, messageData);
       set({ messages: [...messages, res.data] });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Error sending message");
       console.error("Error sending message:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.status, error.response.data);
+      }
     }
   },
 

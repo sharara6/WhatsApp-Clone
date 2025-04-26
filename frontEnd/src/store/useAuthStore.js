@@ -1,11 +1,10 @@
 import { create } from "zustand";
-import { userApiClient } from "../lib/axios.js";
+import { userApiClient, authApiClient } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-// Base URLs for the services
-const USER_SERVICE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/user";
-const MESSAGE_SERVICE_URL = import.meta.env.MODE === "development" ? "http://localhost:5002" : "/message";
+// API Gateway URL for WebSocket connection
+const API_GATEWAY_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -18,12 +17,18 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const res = await userApiClient.get("/auth/check");
+      console.log("Checking auth with:", `${authApiClient.defaults.baseURL}/check`);
+      const res = await authApiClient.get("/check");
 
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
       console.log("Error in checkAuth:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.status, error.response.data);
+      } else if (error.request) {
+        console.log("Error request:", error.request);
+      }
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -33,12 +38,16 @@ export const useAuthStore = create((set, get) => ({
   signup: async (data) => {
     set({ isSigningUp: true });
     try {
-      const res = await userApiClient.post("/auth/signup", data);
+      console.log("Signing up with:", `${authApiClient.defaults.baseURL}/signup`);
+      const res = await authApiClient.post("/signup", data);
       set({ authUser: res.data });
       toast.success("Account created successfully");
       get().connectSocket();
     } catch (error) {
       console.error("Signup error:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.status, error.response.data);
+      }
       toast.error(error?.response?.data?.message || "Error during signup");
     } finally {
       set({ isSigningUp: false });
@@ -48,13 +57,19 @@ export const useAuthStore = create((set, get) => ({
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
-      const res = await userApiClient.post("/auth/login", data);
+      console.log("Logging in with:", `${authApiClient.defaults.baseURL}/login`);
+      const res = await authApiClient.post("/login", data);
       set({ authUser: res.data });
       toast.success("Logged in successfully");
 
       get().connectSocket();
     } catch (error) {
       console.error("Login error:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.status, error.response.data);
+      } else if (error.request) {
+        console.log("Error request:", error.request);
+      }
       toast.error(error?.response?.data?.message || "Error during login");
     } finally {
       set({ isLoggingIn: false });
@@ -63,7 +78,7 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     try {
-      await userApiClient.post("/auth/logout");
+      await authApiClient.post("/logout");
       set({ authUser: null });
       toast.success("Logged out successfully");
       get().disconnectSocket();
@@ -76,7 +91,7 @@ export const useAuthStore = create((set, get) => ({
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
     try {
-      const res = await userApiClient.post("/auth/update-profile", data);
+      const res = await userApiClient.post("/update-profile", data);
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -92,12 +107,17 @@ export const useAuthStore = create((set, get) => ({
     if (!authUser || get().socket?.connected) return;
 
     try {
-      // Connect to the message service socket
-      const socket = io(MESSAGE_SERVICE_URL, {
+      // Connect directly to the message service for WebSockets
+      // API Gateway WebSocket proxying will be handled automatically
+      const socket = io(import.meta.env.MODE === "development" ? "http://localhost:5002" : "/socket", {
         query: {
           userId: authUser._id,
         },
         withCredentials: true,
+        transports: ['websocket', 'polling'],
+        path: '/socket.io/', // Explicit path for socket.io
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       });
       
       socket.on("connect", () => {

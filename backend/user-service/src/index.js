@@ -9,17 +9,17 @@ import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 
-
 const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
+const API_GATEWAY_URL = process.env.API_GATEWAY_URL || "http://localhost:5000";
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5002"], // Allow frontend and message service
+    origin: ["http://localhost:5173", "http://localhost:5002", API_GATEWAY_URL], // Allow frontend, message service, and API gateway
     credentials: true,
   })
 );
@@ -36,5 +36,6 @@ app.get("/health", (req, res) => {
 // Start server
 const server = app.listen(PORT, () => {
   console.log(`User service running on PORT: ${PORT}`);
+  console.log(`API Gateway URL: ${API_GATEWAY_URL}`);
   connectDB();
 }); 
