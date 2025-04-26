@@ -12,6 +12,7 @@ import { app, server, io } from "./lib/socket.js";
 const PORT = process.env.PORT || 5002;
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://localhost:5001";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const API_GATEWAY_URL = process.env.API_GATEWAY_URL || "http://localhost:5000";
 const __dirname = path.resolve();
 
 // Middleware
@@ -19,14 +20,14 @@ app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [FRONTEND_URL, USER_SERVICE_URL],
+    origin: [FRONTEND_URL, USER_SERVICE_URL, API_GATEWAY_URL],
     credentials: true,
   })
 );
 
 // Update Socket.io CORS settings as well
 io.engine.opts.cors = {
-  origin: [FRONTEND_URL, USER_SERVICE_URL],
+  origin: [FRONTEND_URL, USER_SERVICE_URL, API_GATEWAY_URL],
   credentials: true,
 };
 
@@ -34,6 +35,7 @@ io.engine.opts.cors = {
 console.log(`Message service running on port: ${PORT}`);
 console.log(`Connected to user service at: ${USER_SERVICE_URL}`);
 console.log(`Accepting connections from frontend at: ${FRONTEND_URL}`);
+console.log(`API Gateway URL: ${API_GATEWAY_URL}`);
 
 // Routes
 app.use("/api/messages", messageRoutes);

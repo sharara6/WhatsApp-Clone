@@ -1,146 +1,96 @@
-# Video Compression Microservice
+# Video Compression Service
 
-A microservice for compressing video files using FFmpeg, built for the WhatsApp Clone project.
-
-## Overview
-
-This service provides a simple HTTP API for video compression, designed to reduce video file sizes before storing or sharing them within the application. It uses FFmpeg with libx264 encoding for high-quality compression while maintaining reasonable video quality.
+A microservice for compressing video files using FFmpeg with configurable quality settings.
 
 ## Features
 
-- Video compression using H.264 codec
-- Configurable compression ratio via CRF (Constant Rate Factor)
-- Health check endpoint for monitoring
-- CORS support for integration with API Gateway
-- Environment-based configuration
+- HTTP API for video compression
+- Configurable compression quality (CRF 0-51)
+- In-memory video processing
+- Integration with API Gateway
+- Health check endpoint
+- Docker support
 
-## Prerequisites
+## Running with Docker
 
-- Go 1.16 or higher
+The easiest way to run this service is with Docker:
+
+```bash
+# Build and run using docker-compose from the root directory:
+docker-compose up --build video-compression-service
+
+# Or build and run just this service:
+cd backend/Video-Compression-Service
+docker build -t video-compression-service .
+docker run -p 8080:8080 video-compression-service
+```
+
+## Manual Setup
+
+If you prefer to run without Docker:
+
+### Requirements
+
+- Go 1.18 or higher
 - FFmpeg installed on the system
-- Access to file system for reading and writing video files
 
-## Installation
+### Build and Run
 
-1. Clone the repository
-2. Navigate to the service directory
-3. Copy the environment example file:
+1. Make sure FFmpeg is installed on your system
+2. Navigate to the service directory:
+   ```
+   cd backend/Video-Compression-Service
+   ```
+3. Build the service:
+   ```
+   go build -buildvcs=false -o video-compression-service .
+   ```
+4. Run the service:
+   ```
+   ./video-compression-service
+   ```
 
-```bash
-cp .env.example .env
-```
-
-4. Modify the `.env` file to match your requirements
-5. Build and run the service:
-
-```bash
-go build -o video-compression-service
-./video-compression-service
-```
-
-## Configuration
-
-The service is configured using environment variables, which can be set in the `.env` file:
-
-| Variable                    | Description                                      | Default Value                               |
-| --------------------------- | ------------------------------------------------ | ------------------------------------------- |
-| PORT                        | Server port                                      | 8080                                        |
-| ALLOWED_ORIGINS             | CORS allowed origins (comma-separated)           | http://localhost:5000,http://localhost:3000 |
-| DEFAULT_CRF                 | Default compression quality (0-51, lower=better) | 28                                          |
-| MAX_CONCURRENT_COMPRESSIONS | Maximum concurrent compressions                  | 4                                           |
-| LOG_LEVEL                   | Logging level                                    | info                                        |
+The service will start on port 8080 by default.
 
 ## API Endpoints
 
-### Compress Video
+### 1. Compress Video
 
-Compresses a video file using the configured settings.
+**Endpoint:** `POST /compress`
 
-**URL**: `/compress`
+**Form Parameters:**
 
-**Method**: `POST`
+- `video` (required): The video file to compress
+- `quality` (optional): Compression quality (0-51, lower is better quality)
+  - Default: 23 (standard quality)
+  - 0: Lossless (largest files)
+  - 18-23: Visually lossless to most viewers
+  - 28: Medium-low quality
+  - 51: Lowest quality (smallest files)
 
-**Body**:
+**Response:**
 
-```json
-{
-  "input_path": "/path/to/input/video.mp4",
-  "output_path": "/path/to/output/compressed.mp4"
-}
-```
+The compressed video is returned directly in the response body with appropriate headers:
 
-**Success Response**:
+- `Content-Type`: Matching the video format (e.g., video/mp4)
+- `Content-Disposition`: attachment; filename=compressed_example.mp4
 
-```json
-{
-  "success": true,
-  "message": "Video compressed successfully"
-}
-```
+### 2. Health Check
 
-**Error Response**:
+**Endpoint:** `GET /health`
 
-```json
-{
-  "success": false,
-  "message": "Failed to compress video",
-  "error": "input file does not exist: /path/to/input/video.mp4"
-}
-```
-
-### Health Check
-
-Returns the health status of the service.
-
-**URL**: `/health`
-
-**Method**: `GET`
-
-**Success Response**:
+**Response:**
 
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2023-08-15T12:34:56Z"
+  "ok": true
 }
 ```
 
-**Error Response**:
+## API Gateway Integration
 
-```json
-{
-  "status": "unhealthy: ffmpeg not found",
-  "timestamp": "2023-08-15T12:34:56Z"
-}
-```
+This service is configured to work with the API Gateway at the `/video-compression` endpoint.
 
-## Integration with API Gateway
+When running with Docker, the API Gateway routes requests to this service using the Docker network: `http://video-compression-service:8080`.
 
-This service is designed to work with the project's API Gateway. The API Gateway routes requests to this service using the path `/v1/video-compression`.
-
-To use it through the API Gateway:
-
-1. Ensure the API Gateway is configured with the correct service URL in its `.env` file:
-
-```
-VIDEO_COMPRESSION_SERVICE_URL=http://localhost:8080
-```
-
-2. Make requests to the API Gateway endpoint:
-
-```
-POST /v1/video-compression/compress
-```
-
-## Development
-
-### File Structure
-
-- `main.go` - Application entry point and server setup
-- `compression.go` - Video compression logic
-- `handlers.go` - HTTP request handlers
-- `models.go` - Data structures
-
-## License
-
-This project is part of the WhatsApp Clone application and is subject to its licensing terms.
+When running standalone, update the API Gateway routes to point to `http://localhost:8080`.

@@ -1,0 +1,19 @@
+# JWT Authentication
+JWT_SECRET=your_jwt_secret_here
+
+# MongoDB Connection Strings
+USER_MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/user-service?retryWrites=true&w=majority
+MESSAGE_MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/message-service?retryWrites=true&w=majority
+
+# Cloudinary Configuration
+CLOUDINARY_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# Service URLs (for development without Docker)
+USER_SERVICE_URL=http://localhost:5001
+MESSAGE_SERVICE_URL=http://localhost:5002
+FRONTEND_URL=http://localhost:5173
+
+# Docker specific configs
+COMPOSE_PROJECT_NAME=whatsapp-clone 

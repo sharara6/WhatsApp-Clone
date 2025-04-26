@@ -1,6 +1,84 @@
-# WhatsApp Clone
+# WhatsApp Clone Microservices
 
-A full-featured one-to-one messaging app that allows users to sign up and log in using email and password authentication, without requiring a SIM card. This project implements real-time messaging, user authentication, and a responsive UI.
+A WhatsApp clone built with microservices architecture using Node.js, React, and MongoDB.
+
+## Services
+
+- **API Gateway**: Manages API routing and authentication (Port 5000)
+- **User Service**: Handles user management and authentication (Port 5001)
+- **Message Service**: Manages messaging and real-time communication (Port 5002)
+- **Video Compression Service**: Processes and compresses video files (Port 8080)
+- **Frontend**: React application with Vite (Port 5173)
+
+## Docker Setup
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Setup Instructions
+
+1. Clone the repository:
+   ```
+   git clone <repository-url>
+   cd WhatsApp-Clone
+   ```
+
+2. Create environment files:
+   ```
+   cp docker-env-example .env
+   ```
+
+3. Update the `.env` file with your own configuration values.
+
+4. Build and start the containers:
+   ```
+   docker-compose up --build
+   ```
+
+5. Access the application:
+   - Frontend: http://localhost:5173
+   - API Gateway: http://localhost:5000
+   - User Service: http://localhost:5001
+   - Message Service: http://localhost:5002
+   - Video Compression Service: http://localhost:8080
+
+### Development without Docker
+
+1. Create environment files for each service
+2. Install dependencies in each service directory:
+   ```
+   cd <service-directory>
+   npm install
+   ```
+3. Start each service according to their package.json scripts:
+   ```
+   npm run dev
+   ```
+
+## Services Information
+
+### API Gateway
+- Routes API requests to appropriate services
+- Handles authentication and authorization
+
+### User Service
+- Manages user accounts, profiles, and authentication
+- Connects to MongoDB for user data
+
+### Message Service
+- Handles message storage and retrieval
+- Implements real-time messaging with Socket.IO
+- Connects to MongoDB for message data
+
+### Video Compression Service
+- Processes video uploads
+- Compresses videos for efficient storage and streaming
+
+### Frontend
+- React application with modern UI
+- Communicates with backend services through API Gateway
 
 ## Features
 

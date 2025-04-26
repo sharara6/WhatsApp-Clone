@@ -1,0 +1,85 @@
+const ROUTES = [
+    {
+        url: '/api/auth',
+        auth: false,
+        rateLimit: {
+            windowMs: 60 * 1000,
+            max: 20
+        },
+        proxy: {
+            target: process.env.USER_SERVICE_URL || "http://localhost:5001",
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/api/auth`]: '/api/auth',
+            },
+        }
+    },
+    {
+        url: '/api/users',
+        auth: true,
+        rateLimit: {
+            windowMs: 60 * 1000,
+            max: 50
+        },
+        proxy: {
+            target: process.env.USER_SERVICE_URL || "http://localhost:5001",
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/api/users`]: '/api/users',
+            },
+        }
+    },
+    {
+        url: '/api/messages',
+        auth: true,
+        rateLimit: {
+            windowMs: 60 * 1000,
+            max: 100
+        },
+        proxy: {
+            target: process.env.MESSAGE_SERVICE_URL || "http://localhost:5002",
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/api/messages`]: '/api/messages',
+            },
+        }
+    },
+    {
+        url: '/video-compression',
+        auth: false,
+        rateLimit: {
+            windowMs: 60 * 1000,
+            max: 5
+        },
+        proxy: {
+            target: "http://video-compression-service:8080",
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/video-compression`]: '',
+            },
+        }
+    },
+    {
+        url: '/image-compression',
+        auth: true,
+        rateLimit: {
+            windowMs: 60 * 1000,
+            max: 10
+        },
+        proxy: {
+            target: "http://localhost:8081",
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/image-compression`]: '',
+            },
+        }
+    }
+]
+
+// Log the routes configuration
+console.log('Route configurations:');
+ROUTES.forEach(route => {
+    console.log(`${route.url} -> ${route.proxy.target}`);
+});
+
+exports.ROUTES = ROUTES;
