@@ -1,7 +1,7 @@
 import { generateToken } from '../lib/utils.js';
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
-import cloudinary from '../lib/cloudinary.js';
+import minioClient from '../lib/minio.js';
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -87,15 +87,34 @@ export const updateProfile = async (req, res) => {
         if(!profilePic) {
             return res.status(400).json({ message: 'Profile pic required' });
         }
-        const uploadResponse = await cloudinary.uploader.upload(profilePic);
-        
-        const updatedUser = await User.findByIdAndUpdate(
-            user_id, 
-            { profilePic: uploadResponse.secure_url }, 
-            { new: true }
-        ).select('-password');
-        
-        res.status(200).json(updatedUser);
+
+        try {
+            // Remove the data URL prefix if present
+            const base64Data = profilePic.includes('base64,') ? profilePic.split('base64,')[1] : profilePic;
+            const buffer = Buffer.from(base64Data, 'base64');
+            const fileName = `profile-${user_id}-${Date.now()}.jpg`;
+            
+            // Upload to MinIO with metadata
+            await minioClient.putObject('profiles', fileName, buffer, {
+                'Content-Type': 'image/jpeg',
+                'Content-Disposition': 'inline',
+                'Cache-Control': 'public, max-age=31536000'
+            });
+            
+            // Generate a presigned URL that's valid for 7 days
+            const imageUrl = await minioClient.presignedGetObject('profiles', fileName, 7 * 24 * 60 * 60);
+            
+            const updatedUser = await User.findByIdAndUpdate(
+                user_id, 
+                { profilePic: imageUrl }, 
+                { new: true }
+            ).select('-password');
+            
+            res.status(200).json(updatedUser);
+        } catch (error) {
+            console.error('Error processing image:', error);
+            return res.status(400).json({ message: 'Invalid image data' });
+        }
     } catch (error) {
         console.log("Error in updateProfile controller:", error);
         return res.status(500).json({ message: 'Internal server error' });

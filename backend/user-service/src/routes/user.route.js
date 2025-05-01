@@ -1,6 +1,7 @@
 import express from 'express';
 import User from "../models/user.model.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
+import { updateProfile } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
@@ -28,5 +29,8 @@ router.get("/:id", protectRoute, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+router.post("/update-profile", protectRoute, updateProfile);
+router.put("/update-profile", protectRoute, updateProfile);
 
 export default router; 

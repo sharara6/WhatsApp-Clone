@@ -1,6 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
+console.log('Environment variables:', {
+  MONGO_URI: process.env.MONGO_URI,
+  MESSAGE_MONGO_URI: process.env.MESSAGE_MONGO_URI,
+  NODE_ENV: process.env.NODE_ENV
+});
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";

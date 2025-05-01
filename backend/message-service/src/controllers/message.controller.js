@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Message from "../models/message.model.js";
-import cloudinary from "../lib/cloudinary.js";
+import minioClient from "../lib/minio.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 
 /**
@@ -76,7 +76,6 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    
     const token = req.cookies.jwt;
     const receiver = await getUserById(receiverId, token);
     
@@ -86,9 +85,25 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      
-      const uploadResponse = await cloudinary.uploader.upload(image);
-      imageUrl = uploadResponse.secure_url;
+      try {
+        // Remove the data URL prefix if present
+        const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const fileName = `message-${Date.now()}.jpg`;
+        
+        // Upload to MinIO with metadata
+        await minioClient.putObject('messages', fileName, buffer, {
+          'Content-Type': 'image/jpeg',
+          'Content-Disposition': 'inline',
+          'Cache-Control': 'public, max-age=31536000'
+        });
+        
+        // Generate a presigned URL that's valid for 7 days
+        imageUrl = await minioClient.presignedGetObject('messages', fileName, 7 * 24 * 60 * 60);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        return res.status(400).json({ error: 'Invalid image data' });
+      }
     }
 
     const newMessage = new Message({
@@ -100,7 +115,6 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
