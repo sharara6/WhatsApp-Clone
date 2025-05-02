@@ -13,7 +13,7 @@ export const protectRoute = async (req, res, next) => {
         
         try {
             
-            const response = await axios.get(`${userServiceUrl}/api/auth/validate`, {
+            const response = await axios.get(`${userServiceUrl}/api/auth/check`, {
                 headers: {
                     Cookie: `jwt=${token}`
                 },
@@ -21,8 +21,13 @@ export const protectRoute = async (req, res, next) => {
             });
 
             
-            if (response.data && response.data.valid && response.data.user) {
-                req.user = response.data.user;
+            if (response.data) {
+                req.user = {
+                    id: response.data.id,
+                    full_name: response.data.fullName,
+                    email: response.data.email,
+                    profile_pic: response.data.profilePic
+                };
                 next();
             } else {
                 return res.status(401).json({ message: 'Not authorized, token validation failed' });

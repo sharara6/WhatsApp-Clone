@@ -1,28 +1,48 @@
-import mongoose from 'mongoose';
+import { supabase } from '../lib/supabase.js';
 
-const userSchema = new mongoose.Schema({
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    fullName: {
-        type: String,
-        required: true,
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6,
-    },
-    profilePic: {
-        type: String,
-        default: "",
-    },
-}, 
-{
-    timestamps: true,
-});
+export class User {
+    static async create(userData) {
+        const { data, error } = await supabase
+            .from('users')
+            .insert([userData])
+            .select()
+            .single();
+        
+        if (error) throw error;
+        return data;
+    }
 
-const User = mongoose.model("User", userSchema);
-export default User; 
+    static async findByEmail(email) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
+    }
+
+    static async findById(id) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
+    }
+
+    static async update(id, updateData) {
+        const { data, error } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single();
+        
+        if (error) throw error;
+        return data;
+    }
+} 

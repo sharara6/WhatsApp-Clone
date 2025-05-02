@@ -42,6 +42,9 @@ console.log(`Connected to user service at: ${USER_SERVICE_URL}`);
 console.log(`Accepting connections from frontend at: ${FRONTEND_URL}`);
 console.log(`API Gateway URL: ${API_GATEWAY_URL}`);
 
+// Connect to MongoDB
+connectDB();
+
 // Routes
 app.use("/api/messages", messageRoutes);
 
@@ -53,5 +56,5 @@ app.get("/health", (req, res) => {
 // Start server
 server.listen(PORT, () => {
   console.log(`Message service running on PORT: ${PORT}`);
-  connectDB();
+  console.log(`API Gateway URL: ${API_GATEWAY_URL}`);
 }); 

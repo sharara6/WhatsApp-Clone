@@ -1,25 +1,29 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const messageSchema = new mongoose.Schema(
-  {
-    senderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+const messageSchema = new mongoose.Schema({
+    sender_id: {
+        type: String,
+        required: true
     },
-    receiverId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+    receiver_id: {
+        type: String,
+        required: true
     },
     text: {
-      type: String,
+        type: String,
+        default: ''
     },
     image: {
-      type: String,
-    },
-  },
-  { timestamps: true }
-);
+        type: String,
+        default: null
+    }
+}, {
+    timestamps: true
+});
 
-const Message = mongoose.model("Message", messageSchema);
+// Create indexes for faster queries
+messageSchema.index({ sender_id: 1, receiver_id: 1 });
+messageSchema.index({ receiver_id: 1, sender_id: 1 });
+messageSchema.index({ createdAt: 1 });
 
-export default Message; 
+export const Message = mongoose.model('Message', messageSchema); 

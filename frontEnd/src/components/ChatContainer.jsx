@@ -17,19 +17,26 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
   } = useChatStore();
   const { authUser } = useAuthStore();
-  const messageEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   useEffect(() => {
-    getMessages(selectedUser._id);
-
+    getMessages(selectedUser.id);
     subscribeToMessages();
-
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser.id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
-    if (messageEndRef.current && messages) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      const scrollToBottom = () => {
+        container.scrollTop = container.scrollHeight;
+      };
+      
+      // Use requestAnimationFrame to ensure the DOM is updated
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
     }
   }, [messages]);
 
@@ -47,18 +54,17 @@ const ChatContainer = () => {
     <div className="flex-1 flex flex-col overflow-auto">
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
-            key={message._id}
-            className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            ref={messageEndRef}
+            key={message.id}
+            className={`chat ${message.sender_id === authUser.id ? "chat-end" : "chat-start"}`}
           >
-            <div className=" chat-image avatar">
+            <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
                 <img
                   src={
-                    message.senderId === authUser._id
+                    message.sender_id === authUser.id
                       ? authUser.profilePic || "/avatar.png"
                       : selectedUser.profilePic || "/avatar.png"
                   }
@@ -68,7 +74,7 @@ const ChatContainer = () => {
             </div>
             <div className="chat-header mb-1">
               <time className="text-xs opacity-50 ml-1">
-                {formatMessageTime(message.createdAt)}
+                {formatMessageTime(message.created_at)}
               </time>
             </div>
             <div className="chat-bubble flex flex-col">
@@ -89,4 +95,5 @@ const ChatContainer = () => {
     </div>
   );
 };
+
 export default ChatContainer;

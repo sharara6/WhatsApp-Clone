@@ -47,8 +47,8 @@ export const useChatStore = create((set, get) => ({
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
-      console.log("Sending message to:", `${messageApiClient.defaults.baseURL}/send/${selectedUser._id}`);
-      const res = await messageApiClient.post(`/send/${selectedUser._id}`, messageData);
+      console.log("Sending message to:", `${messageApiClient.defaults.baseURL}/send/${selectedUser.id}`);
+      const res = await messageApiClient.post(`/send/${selectedUser.id}`, messageData);
       set({ messages: [...messages, res.data] });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Error sending message");
@@ -70,12 +70,12 @@ export const useChatStore = create((set, get) => ({
     }
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+      const isMessageSentFromSelectedUser = newMessage.sender_id === selectedUser.id;
       if (!isMessageSentFromSelectedUser) return;
 
-      set({
-        messages: [...get().messages, newMessage],
-      });
+      set((state) => ({
+        messages: [...state.messages, newMessage]
+      }));
     });
   },
 
@@ -86,5 +86,7 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: (user) => {
+    set({ selectedUser: user, messages: [] });
+  }
 }));

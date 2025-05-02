@@ -1,71 +1,71 @@
-import axios from 'axios';
-import Message from "../models/message.model.js";
+import { supabase } from '../lib/supabase.js';
+import { Message } from "../models/message.model.js";
 import minioClient from "../lib/minio.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 
-/**
- * Helper function to fetch user details from user service
- */
-const getUserById = async (userId, token) => {
-  try {
-    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:5001';
-    const response = await axios.get(`${userServiceUrl}/api/users/${userId}`, {
-      headers: {
-        Cookie: `jwt=${token}`
-      },
-      withCredentials: true
-    });
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching user ${userId} from user service:`, error.message);
-    return null;
-  }
-};
-
 export const getUsersForSidebar = async (req, res) => {
   try {
- 
-    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:5001';
+    const loggedInUserId = req.user.id;
     
-    try {
-     
-      const response = await axios.get(`${userServiceUrl}/api/users`, {
-        headers: {
-          Cookie: req.headers.cookie || ''
-        },
-        withCredentials: true
-      });
-      
-      
-      const loggedInUserId = req.user._id;
-      const filteredUsers = response.data.filter(user => user._id !== loggedInUserId);
-      
-      res.status(200).json(filteredUsers);
-    } catch (error) {
-      console.error("Error fetching users from user service:", error.message);
-      return res.status(500).json({ error: "Failed to fetch users from user service" });
+    // Get all users except the logged-in user
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, full_name, email, profile_pic')
+      .neq('id', loggedInUserId);
+    
+    if (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ message: 'Error fetching users' });
     }
+
+    // Get online users from socket
+    const onlineUsers = req.app.get('onlineUsers') || new Set();
+    
+    const filteredUsers = users.map(user => ({
+      id: user.id,
+      fullName: user.full_name,
+      email: user.email,
+      profilePic: user.profile_pic ? `${process.env.MINIO_ENDPOINT || 'http://localhost:9000'}/profile-pictures/${user.profile_pic.split('/').pop()}` : null,
+      isOnline: onlineUsers.has(user.id)
+    }));
+
+    res.status(200).json(filteredUsers);
   } catch (error) {
-    console.error("Error in getUsersForSidebar: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error in getUsersForSidebar:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
-    const myId = req.user._id;
+    const myId = req.user.id;
 
+    if (!userToChatId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Get messages between the two users
     const messages = await Message.find({
       $or: [
-        { senderId: myId, receiverId: userToChatId },
-        { senderId: userToChatId, receiverId: myId },
-      ],
+        { sender_id: myId, receiver_id: userToChatId },
+        { sender_id: userToChatId, receiver_id: myId }
+      ]
     }).sort({ createdAt: 1 });
 
-    res.status(200).json(messages);
+    // Process messages to ensure proper image URLs and timestamp field
+    const processedMessages = messages.map(message => {
+      const messageObj = message.toObject();
+      return {
+        ...messageObj,
+        created_at: messageObj.createdAt,
+        image: messageObj.image ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${messageObj.image}` : null
+      };
+    });
+
+    res.status(200).json(processedMessages);
   } catch (error) {
-    console.log("Error in getMessages controller: ", error.message);
+    console.error("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -74,13 +74,10 @@ export const sendMessage = async (req, res) => {
   try {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
-    const senderId = req.user._id;
+    const senderId = req.user.id;
 
-    const token = req.cookies.jwt;
-    const receiver = await getUserById(receiverId, token);
-    
-    if (!receiver) {
-      return res.status(404).json({ error: "Receiver not found" });
+    if (!receiverId) {
+      return res.status(400).json({ error: "Receiver ID is required" });
     }
 
     let imageUrl;
@@ -95,34 +92,37 @@ export const sendMessage = async (req, res) => {
         await minioClient.putObject('messages', fileName, buffer, {
           'Content-Type': 'image/jpeg',
           'Content-Disposition': 'inline',
-          'Cache-Control': 'public, max-age=31536000'
         });
         
-        // Generate a presigned URL that's valid for 7 days
-        imageUrl = await minioClient.presignedGetObject('messages', fileName, 7 * 24 * 60 * 60);
+        imageUrl = fileName; // Store only the filename
       } catch (error) {
         console.error('Error processing image:', error);
         return res.status(400).json({ error: 'Invalid image data' });
       }
     }
 
-    const newMessage = new Message({
-      senderId,
-      receiverId,
+    const newMessage = await Message.create({
+      sender_id: senderId,
+      receiver_id: receiverId,
       text,
       image: imageUrl,
     });
 
-    await newMessage.save();
+    // Add the full image URL and correct timestamp field for the response
+    const responseMessage = {
+      ...newMessage.toObject(),
+      created_at: newMessage.createdAt,
+      image: newMessage.image ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${newMessage.image}` : null
+    };
 
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("newMessage", responseMessage);
     }
 
-    res.status(201).json(newMessage);
+    res.status(201).json(responseMessage);
   } catch (error) {
-    console.log("Error in sendMessage controller: ", error.message);
+    console.error("Error in sendMessage controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 }; 

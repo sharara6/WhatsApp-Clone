@@ -28,10 +28,11 @@ io.on("connection", (socket) => {
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
     console.log(`User ${userId} connected with socket ${socket.id}`);
+    
+    // Notify all clients about the new online user
+    io.emit("userOnline", userId);
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   }
-
-  
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
@@ -39,9 +40,11 @@ io.on("connection", (socket) => {
     if (userId && userId !== "undefined") {
       delete userSocketMap[userId];
       console.log(`User ${userId} disconnected`);
+      
+      // Notify all clients about the user going offline
+      io.emit("userOffline", userId);
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
     }
-    
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
