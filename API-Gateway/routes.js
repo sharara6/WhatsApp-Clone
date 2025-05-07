@@ -45,6 +45,21 @@ const ROUTES = [
         }
     },
     {
+        url: '/api/audio',
+        auth: false,
+        rateLimit: {
+            windowMs: 60 * 1000,
+            max: 10
+        },
+        proxy: {
+            target: "http://audio-service:5003",
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/api/audio`]: '',
+            },
+        }
+    },
+    {
         url: '/video-compression',
         auth: false,
         rateLimit: {

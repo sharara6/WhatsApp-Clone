@@ -15,13 +15,13 @@ import (
 
 const (
 	defaultQuality = 23
+	port           = 8083
 )
 
 func main() {
 	http.HandleFunc("/compress", handleCompression)
 	http.HandleFunc("/health", handleHealth)
 
-	port := 8080
 	log.Printf("Video Compression Service starting on port %d...\n", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
