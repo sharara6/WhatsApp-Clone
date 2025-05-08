@@ -68,7 +68,7 @@ services:
   image-compression-service:
     build: ./backend/Image-Compression-Service
     ports:
-      - "8081:8081"
+      - "8084:8084"
     env_file: .env
     volumes:
       - ./backend/Image-Compression-Service:/usr/src/app

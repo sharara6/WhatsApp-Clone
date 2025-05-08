@@ -14,11 +14,11 @@ RUN npm ci --only=production
 COPY . .
 
 # Set environment variables
-ENV PORT=8081
+ENV PORT=8084
 ENV NODE_ENV=production
 
 # Expose the port the app runs on
-EXPOSE 8081
+EXPOSE 8084
 
 # Command to run the application
 CMD ["node", "src/index.js"]

@@ -90,7 +90,7 @@ export const sendMessage = async (req, res) => {
         const buffer = Buffer.from(base64Data, 'base64');
         
         // Send the image to the compression service first
-        const IMAGE_COMPRESSION_URL = process.env.IMAGE_COMPRESSION_URL || 'http://localhost:8081';
+        const IMAGE_COMPRESSION_URL = process.env.IMAGE_COMPRESSION_URL || 'http://localhost:8084';
         
         // Create form data for the compression service
         const formData = new FormData();
