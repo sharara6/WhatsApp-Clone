@@ -32,12 +32,22 @@ export const useChatStore = create((set, get) => ({
     try {
       console.log("Fetching messages from:", `${messageApiClient.defaults.baseURL}/${userId}`);
       const res = await messageApiClient.get(`/${userId}`);
-      set({ messages: res.data });
+      
+      if (res.data) {
+        set({ messages: res.data });
+      } else {
+        throw new Error("No messages data received");
+      }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Error loading messages");
       console.error("Error fetching messages:", error);
       if (error.response) {
         console.log("Error response:", error.response.status, error.response.data);
+        toast.error(error.response.data.message || "Error loading messages");
+      } else if (error.request) {
+        console.log("Error request:", error.request);
+        toast.error("Network error while loading messages");
+      } else {
+        toast.error("Error loading messages");
       }
     } finally {
       set({ isMessagesLoading: false });
@@ -70,12 +80,14 @@ export const useChatStore = create((set, get) => ({
     }
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.sender_id === selectedUser.id;
-      if (!isMessageSentFromSelectedUser) return;
-
-      set((state) => ({
-        messages: [...state.messages, newMessage]
-      }));
+      const isMessageFromSelectedUser = newMessage.sender_id === selectedUser.id;
+      const isMessageToSelectedUser = newMessage.receiver_id === selectedUser.id;
+      
+      if (isMessageFromSelectedUser || isMessageToSelectedUser) {
+        set((state) => ({
+          messages: [...state.messages, newMessage]
+        }));
+      }
     });
   },
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useMQTT } from '../../context/MQTTContext';
-import { TOPICS } from '../../services/mqtt/mqttClient';
+import { useSocket } from '../../context/SocketContext';
 
 interface Message {
     id: string;
@@ -17,7 +16,34 @@ interface ChatMessageProps {
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isOwn }) => {
     const [messageStatus, setMessageStatus] = useState(message.status);
-    const { isConnected } = useMQTT();
+    const { socket, isConnected } = useSocket();
+
+    useEffect(() => {
+        if (!socket || !isConnected) return;
+
+        // Listen for message status updates
+        const handleStatusUpdate = (data: { messageId: string; status: 'sent' | 'delivered' | 'read' }) => {
+            if (data.messageId === message.id) {
+                setMessageStatus(data.status);
+            }
+        };
+
+        socket.on('messageStatusUpdate', handleStatusUpdate);
+
+        // If this is a received message, mark it as delivered
+        if (!isOwn && messageStatus === 'sent') {
+            socket.emit('messageDelivered', { messageId: message.id });
+        }
+
+        // If this is a received message and it's in view, mark it as read
+        if (!isOwn && messageStatus === 'delivered') {
+            socket.emit('messageRead', { messageId: message.id });
+        }
+
+        return () => {
+            socket.off('messageStatusUpdate', handleStatusUpdate);
+        };
+    }, [socket, isConnected, message.id, isOwn, messageStatus]);
 
     const getStatusIcon = () => {
         switch (messageStatus) {

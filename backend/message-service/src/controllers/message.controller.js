@@ -130,6 +130,7 @@ export const sendMessage = async (req, res) => {
       receiver_id: receiverId,
       text,
       image: imageUrl,
+      status: 'sent'
     });
 
     // Add the full image URL and correct timestamp field for the response
@@ -147,6 +148,23 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(responseMessage);
   } catch (error) {
     console.error("Error in sendMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Add new endpoint to get message status
+export const getMessageStatus = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const message = await Message.findById(messageId);
+    
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    res.status(200).json({ status: message.status });
+  } catch (error) {
+    console.error("Error in getMessageStatus controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 }; 
