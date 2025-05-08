@@ -4,6 +4,8 @@ import { io, Socket } from 'socket.io-client';
 interface SocketContextType {
     socket: Socket | null;
     isConnected: boolean;
+    notificationSocket: Socket | null;
+    isNotificationConnected: boolean;
 }
 
 const SocketContext = createContext<SocketContextType | null>(null);
@@ -24,10 +26,13 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children, userId }) => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    const [notificationSocket, setNotificationSocket] = useState<Socket | null>(null);
+    const [isNotificationConnected, setIsNotificationConnected] = useState(false);
 
     useEffect(() => {
         if (!userId) return;
 
+        // Connect to main socket.io server
         const socketInstance = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
             query: { userId },
             withCredentials: true
@@ -45,14 +50,37 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, userId
 
         setSocket(socketInstance);
 
+        // Connect to notification service
+        const notificationSocketInstance = io(import.meta.env.VITE_NOTIFICATION_URL || 'http://localhost:5003', {
+            withCredentials: true
+        });
+
+        notificationSocketInstance.on('connect', () => {
+            console.log('Notification socket connected');
+            setIsNotificationConnected(true);
+            
+            // Register user ID with notification server
+            notificationSocketInstance.emit('register', userId);
+        });
+
+        notificationSocketInstance.on('disconnect', () => {
+            console.log('Notification socket disconnected');
+            setIsNotificationConnected(false);
+        });
+
+        setNotificationSocket(notificationSocketInstance);
+
         return () => {
             socketInstance.disconnect();
+            notificationSocketInstance.disconnect();
         };
     }, [userId]);
 
     const value = {
         socket,
-        isConnected
+        isConnected,
+        notificationSocket,
+        isNotificationConnected
     };
 
     return (
