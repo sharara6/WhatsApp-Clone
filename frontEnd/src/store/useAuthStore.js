@@ -59,17 +59,25 @@ export const useAuthStore = create((set, get) => ({
     try {
       console.log("Logging in with:", `${authApiClient.defaults.baseURL}/login`);
       const res = await authApiClient.post("/login", data);
-      set({ authUser: res.data });
-      toast.success("Logged in successfully");
-      get().connectSocket();
+      
+      if (res.data) {
+        set({ authUser: res.data });
+        toast.success("Logged in successfully");
+        get().connectSocket();
+      } else {
+        throw new Error("No user data received");
+      }
     } catch (error) {
       console.error("Login error:", error);
       if (error.response) {
         console.log("Error response:", error.response.status, error.response.data);
+        toast.error(error.response.data.message || "Error during login");
       } else if (error.request) {
         console.log("Error request:", error.request);
+        toast.error("Network error during login");
+      } else {
+        toast.error("Error during login");
       }
-      toast.error(error?.response?.data?.message || "Error during login");
     } finally {
       set({ isLoggingIn: false });
     }
@@ -107,6 +115,7 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const socket = io(import.meta.env.MODE === "development" ? "http://localhost:5002" : "/socket", {
+      
         query: {
           userId: authUser.id,
         },

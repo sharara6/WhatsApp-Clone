@@ -13,6 +13,9 @@ export const userApiClient = axios.create({
 export const authApiClient = axios.create({
   baseURL: import.meta.env.MODE === "development" ? `${API_GATEWAY_URL}/api/auth` : "/api/auth",
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  }
 });
 
 // For message service (chat functionality)
