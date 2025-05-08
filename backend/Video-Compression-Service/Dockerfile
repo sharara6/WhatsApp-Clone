@@ -1,36 +1,25 @@
-FROM golang:1.18-alpine AS builder
+FROM golang:1.21-alpine
 
-# Install required dependencies including FFmpeg
-RUN apk add --no-cache ffmpeg gcc musl-dev
+# Install ffmpeg
+RUN apk add --no-cache ffmpeg
 
 # Set working directory
 WORKDIR /app
 
-# Copy go.mod
+# Copy go mod file
 COPY go.mod ./
 
-# Copy the source code
-COPY *.go ./
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
 
 # Build the application
-RUN go build -o video-compression-service .
+RUN go build -o main .
 
-# Use a smaller alpine image for the final image
-FROM alpine:3.16
-
-# Install FFmpeg in the runtime container
-RUN apk add --no-cache ffmpeg ca-certificates
-
-WORKDIR /app
-
-# Copy the binary from the builder stage
-COPY --from=builder /app/video-compression-service .
-
-# Create directories for temporary files
-RUN mkdir -p /app/temp
-
-# Expose the port the service runs on
+# Expose port if needed
 EXPOSE 8080
 
-# Command to run the executable
-CMD ["./video-compression-service"] 
+# Run the application
+CMD ["./main"] 
