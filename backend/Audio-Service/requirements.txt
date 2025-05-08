@@ -1,0 +1,4 @@
+flask
+sounddevice
+scipy
+keyboard 
