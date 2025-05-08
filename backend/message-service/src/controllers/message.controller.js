@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase.js';
 import { Message } from "../models/message.model.js";
 import minioClient from "../lib/minio.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
+import axios from 'axios';
+import FormData from 'form-data';
 
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -86,10 +88,32 @@ export const sendMessage = async (req, res) => {
         // Remove the data URL prefix if present
         const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
         const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Send the image to the compression service first
+        const IMAGE_COMPRESSION_URL = process.env.IMAGE_COMPRESSION_URL || 'http://localhost:8084';
+        
+        // Create form data for the compression service
+        const formData = new FormData();
+        formData.append('file', buffer, {
+          filename: 'image.jpg',
+          contentType: 'image/jpeg',
+        });
+        
+        // Send to compression service
+        const compressResponse = await axios.post(`${IMAGE_COMPRESSION_URL}/compress`, formData, {
+          headers: {
+            ...formData.getHeaders(),
+          },
+          responseType: 'arraybuffer',
+        });
+        
+        // Get the compressed image buffer
+        const compressedBuffer = Buffer.from(compressResponse.data);
+        
+        // Upload compressed image to MinIO
         const fileName = `message-${Date.now()}.jpg`;
         
-        // Upload to MinIO with metadata
-        await minioClient.putObject('messages', fileName, buffer, {
+        await minioClient.putObject('messages', fileName, compressedBuffer, {
           'Content-Type': 'image/jpeg',
           'Content-Disposition': 'inline',
         });
@@ -97,7 +121,7 @@ export const sendMessage = async (req, res) => {
         imageUrl = fileName; // Store only the filename
       } catch (error) {
         console.error('Error processing image:', error);
-        return res.status(400).json({ error: 'Invalid image data' });
+        return res.status(400).json({ error: 'Invalid image data or compression failed' });
       }
     }
 

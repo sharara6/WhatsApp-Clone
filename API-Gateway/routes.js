@@ -82,7 +82,7 @@ const ROUTES = [
             max: 10
         },
         proxy: {
-            target: "http://image-compression-service:8081",
+            target: "http://image-compression-service:8084",
             changeOrigin: true,
             pathRewrite: {
                 [`^/image-compression`]: '',
