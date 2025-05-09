@@ -1,22 +1,25 @@
-FROM golang:1.18-alpine
+FROM golang:1.21-alpine
 
-# Install required dependencies including FFmpeg
-RUN apk add --no-cache ffmpeg gcc musl-dev
+# Install ffmpeg
+RUN apk add --no-cache ffmpeg
 
 # Set working directory
 WORKDIR /app
 
-# Copy go.mod and source code
+# Copy go mod file
+COPY go.mod ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
 COPY . .
 
 # Build the application
-RUN go build -o /usr/local/bin/video-compression-service
+RUN go build -o main .
 
-# Create directories for temporary files
-RUN mkdir -p /app/temp
+# Expose port if needed
+EXPOSE 8080
 
-# Expose the port the service runs on
-EXPOSE 8083
-
-# Command to run the executable
-CMD ["/usr/local/bin/video-compression-service"] 
+# Run the application
+CMD ["./main"] 

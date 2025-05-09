@@ -408,3 +408,4 @@ FodyWeavers.xsd
 
 # Video Compression Service
 backend/Video-Compression-Service/.env
+docs/media-messaging.md

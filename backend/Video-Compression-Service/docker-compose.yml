@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  video-compression-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./temp:/app/temp
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME:-}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-}
+    restart: unless-stopped 
