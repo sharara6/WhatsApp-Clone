@@ -46,16 +46,18 @@ const ROUTES = [
     },
     {
         url: '/api/audio',
-        auth: false,
+        auth: true,
         rateLimit: {
             windowMs: 60 * 1000,
-            max: 10
+            max: 50
         },
         proxy: {
             target: "http://audio-service:5003",
             changeOrigin: true,
             pathRewrite: {
-                [`^/api/audio`]: '',
+                [`^/api/audio/upload`]: '/upload',
+                [`^/api/audio/messages`]: '/messages',
+                [`^/api/audio/(.*)`]: '/$1'
             },
         }
     },
