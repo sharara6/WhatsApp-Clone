@@ -55,13 +55,14 @@ export const getMessages = async (req, res) => {
       ]
     }).sort({ createdAt: 1 });
 
-    // Process messages to ensure proper image URLs and timestamp field
+    // Process messages to ensure proper image and video URLs and timestamp field
     const processedMessages = messages.map(message => {
       const messageObj = message.toObject();
       return {
         ...messageObj,
         created_at: messageObj.createdAt,
-        image: messageObj.image ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${messageObj.image}` : null
+        image: messageObj.image ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${messageObj.image.split('/').pop()}` : null,
+        video: messageObj.video ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${messageObj.video.split('/').pop()}` : null
       };
     });
 
@@ -74,7 +75,7 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, video } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user.id;
 
@@ -82,7 +83,9 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ error: "Receiver ID is required" });
     }
 
-    let imageUrl;
+    let imageFileName;
+    let videoFileName;
+
     if (image) {
       try {
         // Remove the data URL prefix if present
@@ -118,26 +121,51 @@ export const sendMessage = async (req, res) => {
           'Content-Disposition': 'inline',
         });
         
-        imageUrl = fileName; // Store only the filename
+        imageFileName = fileName;
       } catch (error) {
         console.error('Error processing image:', error);
         return res.status(400).json({ error: 'Invalid image data or compression failed' });
       }
     }
 
-    const newMessage = await Message.create({
+    if (video) {
+      try {
+        // Remove the data URL prefix if present
+        const base64Data = video.includes('base64,') ? video.split('base64,')[1] : video;
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Upload video to MinIO
+        const fileName = `video-${Date.now()}.mp4`;
+        
+        await minioClient.putObject('messages', fileName, buffer, {
+          'Content-Type': 'video/mp4',
+          'Content-Disposition': 'inline',
+        });
+        
+        videoFileName = fileName;
+      } catch (error) {
+        console.error('Error processing video:', error);
+        return res.status(400).json({ error: 'Invalid video data or upload failed' });
+      }
+    }
+
+    const newMessage = new Message({
       sender_id: senderId,
       receiver_id: receiverId,
-      text,
-      image: imageUrl,
+      text: text || '',
+      image: imageFileName || null,
+      video: videoFileName || null,
       status: 'sent'
     });
 
-    // Add the full image URL and correct timestamp field for the response
+    await newMessage.save();
+
+    // Add the full URLs for the response
     const responseMessage = {
       ...newMessage.toObject(),
       created_at: newMessage.createdAt,
-      image: newMessage.image ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${newMessage.image}` : null
+      image: imageFileName ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${imageFileName}` : null,
+      video: videoFileName ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${videoFileName}` : null
     };
 
     const receiverSocketId = getReceiverSocketId(receiverId);
@@ -147,8 +175,8 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(responseMessage);
   } catch (error) {
-    console.error("Error in sendMessage controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error in sendMessage controller:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
