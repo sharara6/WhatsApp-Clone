@@ -1,24 +1,21 @@
 FROM node:18-alpine
 
-# Create app directory
+# Set working directory
 WORKDIR /usr/src/app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# Install dependencies first (for better caching)
 COPY package*.json ./
+RUN npm install --omit=dev
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Bundle app source
+# Copy application code
 COPY . .
 
 # Set environment variables
-ENV PORT=8081
 ENV NODE_ENV=production
+ENV PORT=8081
 
-# Expose the port the app runs on
+# Expose the port
 EXPOSE 8081
 
-# Command to run the application
+# Run the application
 CMD ["node", "src/index.js"]
