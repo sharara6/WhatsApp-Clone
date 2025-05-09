@@ -6,20 +6,23 @@ RUN apk add --no-cache ffmpeg
 # Set working directory
 WORKDIR /app
 
-# Copy go mod file
+# Copy go mod and sum files
 COPY go.mod ./
 
+# Initialize go module if not already initialized
+RUN go mod init video-compression-service || true
+
 # Download dependencies
-RUN go mod download
+RUN go mod tidy
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -o server server.go
 
-# Expose port if needed
-EXPOSE 8080
+# Expose port
+EXPOSE 8083
 
 # Run the application
-CMD ["./main"] 
+CMD ["./server"] 
