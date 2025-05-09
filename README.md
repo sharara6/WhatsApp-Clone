@@ -8,6 +8,7 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 - **User Service**: Handles user management and authentication (Port 5001)
 - **Message Service**: Manages messaging and real-time communication (Port 5002)
 - **Video Compression Service**: Processes and compresses video files (Port 8080)
+- **Broker Service**: Handles message queuing with RabbitMQ
 - **Frontend**: React application with Vite (Port 5173)
 
 ## Docker Setup
@@ -20,12 +21,14 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 ### Setup Instructions
 
 1. Clone the repository:
+
    ```
    git clone <repository-url>
    cd WhatsApp-Clone
    ```
 
 2. Create environment files:
+
    ```
    cp docker-env-example .env
    ```
@@ -33,6 +36,7 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 3. Update the `.env` file with your own configuration values.
 
 4. Build and start the containers:
+
    ```
    docker-compose up --build
    ```
@@ -60,23 +64,32 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 ## Services Information
 
 ### API Gateway
+
 - Routes API requests to appropriate services
 - Handles authentication and authorization
 
 ### User Service
+
 - Manages user accounts, profiles, and authentication
 - Connects to MongoDB for user data
 
 ### Message Service
+
 - Handles message storage and retrieval
 - Implements real-time messaging with Socket.IO
 - Connects to MongoDB for message data
 
 ### Video Compression Service
+
 - Processes video uploads
 - Compresses videos for efficient storage and streaming
 
+### Broker Service
+
+- Handles message queuing with RabbitMQ
+
 ### Frontend
+
 - React application with modern UI
 - Communicates with backend services through API Gateway
 
@@ -84,7 +97,7 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 
 - **Email & Password Authentication**: Secure authentication with JWT and OAuth 2.0.
 - **One-to-One Messaging**: Direct communication between users.
-- **Real-Time Messaging**: Instant communication using WebSockets and MQTT.
+- **Real-Time Messaging**: Instant communication using WebSockets.
 - **User Profiles**: Update profile pictures and display names.
 - **Friend Requests**: Send and accept friend requests before initiating chats.
 - **Online Status**: Show when users are online.
@@ -98,12 +111,14 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 - **Microservices**:
   - **API Gateway**: Node.js service for routing and authentication
   - **Video Compression Service**: Go-based service for efficient video compression using FFmpeg
+  - **Broker Service**: Go-based service for RabbitMQ message handling
 - **Database**:
   - PostgreSQL for relational data (users, authentication)
   - Redis for caching and real-time session management
   - MongoDB for unstructured chat messages
+- **Messaging**: RabbitMQ for reliable inter-service communication
 - **Authentication**: JWT and OAuth 2.0 (Google, Facebook logins)
-- **Real-time Communication**: WebSockets & MQTT for messaging
+- **Real-time Communication**: WebSockets for messaging
 - **Storage**: Cloudinary / AWS S3
 
 ## Installation
@@ -129,7 +144,6 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
      DATABASE_URL=postgresql://user:password@host:port/database
      REDIS_URL=redis://user:password@host:port
      MONGO_URI=mongodb://user:password@host:port/database
-     MQTT_BROKER=mqtt://host:port
      NEXTAUTH_SECRET=your_secret
      NEXTAUTH_URL=http://localhost:3000
      ```
@@ -157,7 +171,7 @@ A WhatsApp clone built with microservices architecture using Node.js, React, and
 
 1. Deploy frontend and backend services to Azure App Service.
 2. Use Azure Monitor for application performance tracking.
-3. Configure Azure PostgreSQL, Redis, MongoDB, and MQTT.
+3. Configure Azure PostgreSQL, Redis, and MongoDB.
 4. Set up environment variables in Azure.
 
 ## License
