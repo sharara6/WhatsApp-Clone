@@ -4,7 +4,6 @@ import minioClient from "../lib/minio.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import axios from 'axios';
 import FormData from 'form-data';
-import { sendMessageNotification } from '../lib/notification.js';
 
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -91,7 +90,7 @@ export const sendMessage = async (req, res) => {
         const buffer = Buffer.from(base64Data, 'base64');
         
         // Send the image to the compression service first
-        const IMAGE_COMPRESSION_URL = process.env.IMAGE_COMPRESSION_URL || 'http://localhost:8081';
+        const IMAGE_COMPRESSION_URL = process.env.IMAGE_COMPRESSION_URL || 'http://localhost:8084';
         
         // Create form data for the compression service
         const formData = new FormData();
@@ -131,6 +130,7 @@ export const sendMessage = async (req, res) => {
       receiver_id: receiverId,
       text,
       image: imageUrl,
+      status: 'sent'
     });
 
     // Add the full image URL and correct timestamp field for the response
@@ -140,18 +140,10 @@ export const sendMessage = async (req, res) => {
       image: newMessage.image ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${newMessage.image}` : null
     };
 
-    // Send real-time notification via Socket.IO
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", responseMessage);
     }
-
-    // Send notification via notification service
-    await sendMessageNotification(
-      receiverId, 
-      senderId, 
-      text ? `New message: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}` : 'New image message'
-    );
 
     res.status(201).json(responseMessage);
   } catch (error) {
