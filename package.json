@@ -1,7 +1,6 @@
 {
   "dependencies": {
-    "@types/mqtt": "^0.0.34",
-    "@types/react": "^19.1.2",
-    "mqtt": "^5.11.1"
+    "@types/node": "^20.12.9",
+    "uuid": "^9.0.1"
   }
 }

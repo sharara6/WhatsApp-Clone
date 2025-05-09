@@ -4,12 +4,13 @@ A modern WhatsApp web clone built with React and Vite, offering real-time messag
 
 ## Features
 
-- Real-time messaging using MQTT and Socket.IO
-- Message delivery status tracking (sent, delivered, read)
-- User presence detection (online/offline status)
-- Typing indicators
+- Real-time messaging using Socket.IO
+- User authentication
 - Contact list management
 - Chat rooms and private messaging
+- Message status tracking (sent, delivered, read)
+- User presence detection (online/offline status)
+- Typing indicators
 - Profile management
 - Responsive design
 - Media sharing capabilities
@@ -19,8 +20,7 @@ A modern WhatsApp web clone built with React and Vite, offering real-time messag
 - React + Vite
 - TypeScript
 - Tailwind CSS for styling
-- MQTT.js for real-time messaging
-- Socket.IO for additional real-time features
+- Socket.IO for real-time communication
 - React Router for navigation
 - Redux/Context API for state management
 
@@ -30,10 +30,9 @@ A modern WhatsApp web clone built with React and Vite, offering real-time messag
 
 The application uses a hybrid messaging system:
 
-- **MQTT** for reliable message delivery and status updates
-- **Socket.IO** for complementary real-time features
+- **Socket.IO** for reliable message delivery and status updates
 
-#### MQTT Topics
+#### Socket.IO Topics
 
 - `whatsapp/messages` - Main chat messages
 - `whatsapp/users/status` - User online/offline status
@@ -50,7 +49,6 @@ The application uses a hybrid messaging system:
 
 - Node.js (v14 or higher)
 - npm or yarn
-- MQTT Broker (e.g., Mosquitto)
 
 ### Installation
 
@@ -74,7 +72,6 @@ yarn install
 ```env
 VITE_API_URL=your_backend_url
 VITE_SOCKET_URL=your_socket_url
-VITE_MQTT_BROKER_URL=your_mqtt_broker_url
 ```
 
 4. Start the development server
@@ -106,8 +103,7 @@ frontEnd/
 │   ├── pages/          # Page components
 │   ├── context/        # React Context providers
 │   ├── hooks/          # Custom React hooks
-│   ├── services/       # API and messaging services
-│   │   ├── mqtt/       # MQTT client and handlers
+│   ├── services/       # API and socket services
 │   │   ├── socket/     # Socket.IO integration
 │   │   └── api/        # REST API services
 │   ├── utils/          # Utility functions
@@ -132,13 +128,13 @@ frontEnd/
 
 1. **Sending Messages**
 
-   - Messages are published to MQTT broker
-   - QoS 1 ensures at-least-once delivery
+   - Messages are sent via Socket.IO
+   - Message delivery is confirmed by the server
    - Message status updates are tracked
 
 2. **Receiving Messages**
 
-   - Subscribe to relevant MQTT topics
+   - Listen for events on Socket.IO connection
    - Handle different message types
    - Update UI in real-time
 
@@ -158,19 +154,17 @@ frontEnd/
 
 ## Troubleshooting
 
-### MQTT Connection Issues
+### Connection Issues
 
-- Verify MQTT broker is running
-- Check broker URL and port
-- Ensure credentials are correct
-- Check network connectivity
+- Verify WebSocket server is running
+- Check server URL and port
+- Ensure network connectivity is working
 
 ### Message Delivery Problems
 
-- Verify QoS levels
-- Check topic subscriptions
-- Monitor broker logs
-- Verify message format
+- Check Socket.IO connection status
+- Verify event names match between client and server
+- Monitor server logs for errors
 
 ## License
 

@@ -2,66 +2,70 @@ version: "3.8"
 
 services:
   frontend:
-    build: ./frontend
+    build: ./frontEnd
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - ./frontEnd:/app
       - /app/node_modules
     depends_on:
       - api-gateway
     networks:
       - app-network
+    env_file: .env
 
   api-gateway:
-    build: ./api-gateway
+    build: ./API-Gateway
     ports:
       - "5000:5000"
     env_file: .env
     volumes:
-      - ./api-gateway:/app
+      - ./API-Gateway:/app
       - /app/node_modules
     depends_on:
-      - user-service
-      - message-service
+      - mongo
     networks:
       - app-network
 
   user-service:
-    build: ./user-service
+    build: ./backend/user-service
     ports:
       - "5001:5001"
     env_file: .env
     volumes:
-      - ./user-service:/app
+      - ./backend/user-service:/app
       - /app/node_modules
     depends_on:
       - mongo
+      - api-gateway
     networks:
       - app-network
 
   message-service:
-    build: ./message-service
+    build: ./backend/message-service
     ports:
       - "5002:5002"
     env_file: .env
     volumes:
-      - ./message-service:/app
+      - ./backend/message-service:/app
       - /app/node_modules
     depends_on:
       - mongo
+      - api-gateway
     networks:
       - app-network
 
   video-compression-service:
-    build: ./video-compression-service
+    build: ./backend/Video-Compression-Service
     ports:
       - "8080:8080"
     env_file: .env
     volumes:
-      - ./video-compression-service:/app
+      - ./backend/Video-Compression-Service:/app
       - /app/node_modules
       - ./uploads:/app/uploads
+    depends_on:
+      - api-gateway
     networks:
       - app-network
 
@@ -74,6 +78,8 @@ services:
       - ./backend/Image-Compression-Service:/usr/src/app
       - /usr/src/app/node_modules
       - ./uploads:/usr/src/app/uploads
+    depends_on:
+      - api-gateway
     networks:
       - app-network
 
@@ -85,6 +91,7 @@ services:
       - mongo-data:/data/db
     networks:
       - app-network
+    env_file: .env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
@@ -93,7 +100,7 @@ services:
     image: mongo-express:latest
     restart: always
     ports:
-      - "8082:8081" # Changed external port from 8081 to 8082
+      - "8082:8081"
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
@@ -107,6 +114,31 @@ services:
     build: ./backend/Audio-Service
     ports:
       - "5003:5003"
+    env_file: .env
+    volumes:
+      - ./backend/Audio-Service:/app
+      - ./uploads:/app/uploads
+    depends_on:
+      - mongo
+      - api-gateway
+    networks:
+      - app-network
+
+  broker-service:
+    build: ./backend/broker-service
+    env_file: .env
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - app-network
 
@@ -117,3 +149,4 @@ networks:
 volumes:
   mongo-data:
   redis_data:
+  rabbitmq_data:
