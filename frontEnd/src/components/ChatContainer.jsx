@@ -6,6 +6,7 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import AudioMessageBubble from "./Chat/AudioMessageBubble";
 
 const ChatContainer = () => {
   const {
@@ -50,6 +51,31 @@ const ChatContainer = () => {
     );
   }
 
+  const renderMessageContent = (message) => {
+    switch (message.type) {
+      case 'audio':
+        return (
+          <AudioMessageBubble
+            audioUrl={message.content}
+            isOwnMessage={message.sender_id === authUser.id}
+          />
+        );
+      case 'image':
+        return (
+          <>
+            <img
+              src={message.content}
+              alt="Attachment"
+              className="sm:max-w-[200px] rounded-md mb-2"
+            />
+            {message.text && <p>{message.text}</p>}
+          </>
+        );
+      default:
+        return <p>{message.content}</p>;
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-auto">
       <ChatHeader />
@@ -78,14 +104,7 @@ const ChatContainer = () => {
               </time>
             </div>
             <div className="chat-bubble flex flex-col">
-              {message.image && (
-                <img
-                  src={message.image}
-                  alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
-                />
-              )}
-              {message.text && <p>{message.text}</p>}
+              {renderMessageContent(message)}
             </div>
           </div>
         ))}

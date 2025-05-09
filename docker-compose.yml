@@ -22,11 +22,7 @@ services:
       - ./api-gateway:/app
       - /app/node_modules
     depends_on:
-      - user-service
-      - message-service
-      - audio-service
-      - video-compression-service
-      - image-compression-service
+      - mongo
     networks:
       - app-network
 

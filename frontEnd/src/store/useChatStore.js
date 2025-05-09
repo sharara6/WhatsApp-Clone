@@ -48,7 +48,31 @@ export const useChatStore = create((set, get) => ({
     const { selectedUser, messages } = get();
     try {
       console.log("Sending message to:", `${messageApiClient.defaults.baseURL}/send/${selectedUser.id}`);
-      const res = await messageApiClient.post(`/send/${selectedUser.id}`, messageData);
+      
+      // Handle different message types
+      let messageToSend = messageData;
+      if (messageData.type === 'audio') {
+        messageToSend = {
+          type: 'audio',
+          content: messageData.audioUrl,
+          timestamp: new Date().toISOString()
+        };
+      } else if (messageData.image) {
+        messageToSend = {
+          type: 'image',
+          content: messageData.image,
+          text: messageData.text,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        messageToSend = {
+          type: 'text',
+          content: messageData.text,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      const res = await messageApiClient.post(`/send/${selectedUser.id}`, messageToSend);
       set({ messages: [...messages, res.data] });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Error sending message");
