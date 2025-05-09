@@ -12,6 +12,7 @@ services:
       - api-gateway
     networks:
       - app-network
+    env_file: .env
 
   api-gateway:
     build: ./API-Gateway
@@ -90,6 +91,7 @@ services:
       - mongo-data:/data/db
     networks:
       - app-network
+    env_file: .env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
@@ -122,6 +124,24 @@ services:
     networks:
       - app-network
 
+  broker-service:
+    build: ./backend/broker-service
+    env_file: .env
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
@@ -129,3 +149,4 @@ networks:
 volumes:
   mongo-data:
   redis_data:
+  rabbitmq_data:

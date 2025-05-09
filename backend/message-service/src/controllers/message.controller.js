@@ -4,6 +4,8 @@ import minioClient from "../lib/minio.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import axios from 'axios';
 import FormData from 'form-data';
+import messageService from '../lib/messageService.js';
+
 
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -40,20 +42,17 @@ export const getUsersForSidebar = async (req, res) => {
 
 export const getMessages = async (req, res) => {
   try {
-    const { id: userToChatId } = req.params;
-    const myId = req.user.id;
-
-    if (!userToChatId) {
-      return res.status(400).json({ error: "User ID is required" });
+    const { senderId, receiverId } = req.query;
+    
+    if (!senderId || !receiverId) {
+      return res.status(400).json({ message: 'Sender and receiver IDs are required' });
     }
-
-    // Get messages between the two users
+    
     const messages = await Message.find({
       $or: [
-        { sender_id: myId, receiver_id: userToChatId },
-        { sender_id: userToChatId, receiver_id: myId }
-      ]
-    }).sort({ createdAt: 1 });
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId }
+      ]}).sort({ createdAt: 1 });
 
     // Process messages to ensure proper image and video URLs and timestamp field
     const processedMessages = messages.map(message => {
@@ -67,9 +66,13 @@ export const getMessages = async (req, res) => {
     });
 
     res.status(200).json(processedMessages);
+
+    }).sort({ timestamp: 1 });
+    
+    return res.status(200).json(messages);
   } catch (error) {
-    console.error("Error in getMessages controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error getting messages:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -166,33 +169,125 @@ export const sendMessage = async (req, res) => {
       created_at: newMessage.createdAt,
       image: imageFileName ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${imageFileName}` : null,
       video: videoFileName ? `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/messages/${videoFileName}` : null
-    };
-
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", responseMessage);
+    const { sender, receiver, content, type = 'text' } = req.body;
+    
+    if (!sender || !receiver || !content) {
+      return res.status(400).json({ message: 'Sender, receiver, and content are required' });
     }
+    
+    const messageData = {
+      sender,
+      receiver,
+      content,
+      type,
+      timestamp: new Date(),
+      status: 'sent'
+    };
+    
+    // Process with Socket.IO first (also saves to database)
+    const newMessage = await messageService.handleNewMessage(messageData);
+    
+    // Also publish to RabbitMQ for additional processing or integration with other services
+    if (messageService.rabbitInitialized) {
+      await messageService.publishToRabbitMQ('chat_exchange', 'chat_messages', {
+        ...messageData,
+        _id: newMessage._id,
+        source: 'api'
+      });
+    }
+    
+    return res.status(201).json(newMessage);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
-    res.status(201).json(responseMessage);
+// Update message status (read, delivered)
+export const updateMessageStatus = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { status } = req.body;
+    
+    if (!['sent', 'delivered', 'read'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    
+    const message = await Message.findByIdAndUpdate(
+      messageId,
+      { status },
+      { new: true }
+    );
+    
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+    
+    // Notify clients via Socket.IO
+    const chatId = messageService.getChatId(message.sender, message.receiver);
+    messageService.io.to(chatId).emit('message_status', {
+      messageId: message._id,
+      status,
+      timestamp: new Date()
+    });
+    
+    // Also publish to RabbitMQ
+    if (messageService.rabbitInitialized) {
+      await messageService.publishToRabbitMQ('chat_exchange', 'message_status', {
+        messageId: message._id,
+        status,
+        timestamp: new Date(),
+        sender: message.sender,
+        receiver: message.receiver
+      });
+    }
+    
+    return res.status(200).json(message);
   } catch (error) {
     console.error('Error in sendMessage controller:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Add new endpoint to get message status
-export const getMessageStatus = async (req, res) => {
+// Delete a message
+export const deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
+    const { userId } = req.body; // To ensure only sender can delete
+    
     const message = await Message.findById(messageId);
     
     if (!message) {
-      return res.status(404).json({ error: "Message not found" });
+      return res.status(404).json({ message: 'Message not found' });
     }
-
-    res.status(200).json({ status: message.status });
+    
+    // Check if user is authorized to delete
+    if (message.sender.toString() !== userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this message' });
+    }
+    
+    await Message.findByIdAndDelete(messageId);
+    
+    // Notify clients via Socket.IO
+    const chatId = messageService.getChatId(message.sender, message.receiver);
+    messageService.io.to(chatId).emit('message_deleted', {
+      messageId: message._id,
+      timestamp: new Date()
+    });
+    
+    // Also publish to RabbitMQ
+    if (messageService.rabbitInitialized) {
+      await messageService.publishToRabbitMQ('chat_exchange', 'message_deleted', {
+        messageId: message._id,
+        sender: message.sender,
+        receiver: message.receiver,
+        timestamp: new Date()
+      });
+    }
+    
+    return res.status(200).json({ message: 'Message deleted successfully' });
   } catch (error) {
-    console.error("Error in getMessageStatus controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error deleting message:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }; 
