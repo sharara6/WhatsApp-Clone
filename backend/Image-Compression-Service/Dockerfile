@@ -3,12 +3,18 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install dependencies first (for better caching)
+# Copy package files
 COPY package*.json ./
 RUN npm install --omit=dev
 
-# Copy application code
+# Install dependencies
+RUN npm install --omit=dev
+
+# Bundle app source
 COPY . .
+
+# Create uploads directory
+RUN mkdir -p uploads
 
 # Set environment variables
 ENV PORT=8084
@@ -18,5 +24,5 @@ ENV PORT=8081
 # Expose the port the app runs on
 EXPOSE 8084
 
-# Run the application
-CMD ["node", "src/index.js"]
+# Command to run the application
+CMD ["npm", "start"]

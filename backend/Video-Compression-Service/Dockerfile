@@ -34,8 +34,8 @@ COPY --from=builder /build/server .
 # Make the binary executable
 RUN chmod +x server
 
-# Expose port
-EXPOSE 8085
+# Expose the port the service runs on
+EXPOSE 8080
 
 # Run the application
 CMD ["./server"] 

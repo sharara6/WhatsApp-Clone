@@ -65,6 +65,8 @@ services:
       - ./uploads:/app/uploads
     networks:
       - app-network
+    environment:
+      - PORT=8080
 
   image-compression-service:
     build: ./backend/Image-Compression-Service

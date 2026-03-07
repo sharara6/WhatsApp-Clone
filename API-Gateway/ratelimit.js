@@ -28,7 +28,8 @@ const slidingWindowRateLimiter = async (req, res, next) => {
   const userKey = req.user?.username || req.ip; // Fallback to IP if no user
   const key = `rate_limiter:${userKey}`;
   const now = Date.now();
-  const windowStart = now - WINDOW_SIZE;
+  const windowStart = now - (config.windowMs || WINDOW_SIZE);
+  const maxRequests = config.max || MAX_REQUESTS;
 
   try {
     // Remove timestamps older than the window
